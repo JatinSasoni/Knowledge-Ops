@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id  String @id @default(uuid())
+  email String @unique
+  password String
+  members Member[]
+  createdAt DateTime @default(now())
+}
+
+model Workspace{
+  id String @id @default(uuid())
+  name String
+  slug String @unique
+  members Member[]
+  documents Document[]
+  createdAt DateTime @default(now())
+}
+
+model Member {
+  id String @id @default(uuid())
+  role String @default("Member")
+  userId String
+  workspaceId String
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
+
+  @@unique([userId,workspaceId])
+}
+
+model Document {
+  id String @id @default(uuid())
+  title String
+  fileUrl String?
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
