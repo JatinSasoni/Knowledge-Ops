@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"] # every push, on every branch
+  pull_request:
+    branches: [main]
+
+# If you push twice quickly, cancel the older run instead of wasting minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — lint, format, typecheck
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend # every `run:` step executes inside backend/
+
+    env:
+      # prisma.config.ts reads DATABASE_URL. Generate doesn't connect,
+      # but the value must exist. This is a dummy, NOT a real secret.
+      DATABASE_URL: postgresql://user:pass@localhost:5432/db
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck

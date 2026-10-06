@@ -9,5 +9,6 @@
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src"]
 }
