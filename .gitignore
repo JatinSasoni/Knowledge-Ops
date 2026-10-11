@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 
+
 # Environment (commit .env.example, never .env)
 .env
 .env.*
