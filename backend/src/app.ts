@@ -15,7 +15,7 @@ app.get("/health", async (_req: Request, res: Response) => {
 });
 
 //routes
-app.get("/api/v1/auth", authRouter);
+app.use("/api/v1/auth", authRouter);
 
 // 404 for unknown routes
 app.use(notFoundHandler);

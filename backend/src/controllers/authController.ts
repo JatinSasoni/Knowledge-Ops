@@ -3,6 +3,7 @@ import { asyncHandler } from "../util/asyncHandler";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../util/AppError";
 import { signToken } from "../lib/jwt";
+import type { loginInput, RegisterInput } from "../schemas/auth";
 
 const publicUser = (u: { id: string; email: string; createdAt: Date }) => ({
   id: u.id,
@@ -11,7 +12,7 @@ const publicUser = (u: { id: string; email: string; createdAt: Date }) => ({
 });
 
 export const register = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body as RegisterInput;
   const hashed = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: {
@@ -20,11 +21,11 @@ export const register = asyncHandler(async (req, res) => {
     },
   });
 
-  res.status(201).json({ id: user.id, email: user.email });
+  res.status(201).json({ user: publicUser(user) });
 });
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body as loginInput;
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw AppError.unauthorized("Invalid email or password");

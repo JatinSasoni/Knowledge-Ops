@@ -3,7 +3,7 @@ import { env } from "./config/env";
 import { prisma } from "./lib/prisma";
 
 const server = app.listen(env.PORT, () => {
-  console.log(`API Listening on http://localhost${env.PORT}`);
+  console.log(`API Listening on http://localhost:${env.PORT}`);
 });
 
 // Graceful shutdown: Docker sends SIGTERM when stopping a container
