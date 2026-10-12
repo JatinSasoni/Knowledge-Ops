@@ -34,8 +34,9 @@ model Member {
   workspaceId String
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
-
+  createdAt   DateTime  @default(now())
   @@unique([userId,workspaceId])
+  @@index([workspaceId])
 }
 
 model Document {
