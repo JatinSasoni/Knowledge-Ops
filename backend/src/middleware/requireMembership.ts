@@ -7,7 +7,7 @@ import { AppError } from "../util/AppError";
 export const requireMembership = (...allowedRoles: Role[]): RequestHandler =>
   asyncHandler(async (req, _res, next) => {
     const { workspaceId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user!.id;
 
     const member = await prisma.member.findUnique({
       where: {
