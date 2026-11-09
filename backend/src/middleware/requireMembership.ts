@@ -3,10 +3,11 @@ import type { RequestHandler } from "express";
 import { asyncHandler } from "../util/asyncHandler";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../util/AppError";
+import { workspaceParams } from "../schemas/workspace";
 
 export const requireMembership = (...allowedRoles: Role[]): RequestHandler =>
   asyncHandler(async (req, _res, next) => {
-    const { workspaceId } = req.params;
+    const { workspaceId } = workspaceParams.parse(req.params);
     const userId = req.user!.id;
 
     const member = await prisma.member.findUnique({

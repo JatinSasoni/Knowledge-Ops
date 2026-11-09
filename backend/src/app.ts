@@ -3,6 +3,8 @@ import type { Request, Response } from "express";
 import { prisma } from "./lib/prisma";
 import authRouter from "./routes/authRoute";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { requireAuth } from "./middleware/requireAuth";
+import workspaceRouter from "./routes/workspaceRoute";
 
 export const app = express();
 
@@ -16,6 +18,7 @@ app.get("/health", async (_req: Request, res: Response) => {
 
 //routes
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/workspaces", requireAuth, workspaceRouter);
 
 // 404 for unknown routes
 app.use(notFoundHandler);

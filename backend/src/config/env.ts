@@ -1,5 +1,5 @@
 // src/config/env.ts
-import "dotenv/config"; // loads .env into process.env, must run before parsing
+import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({

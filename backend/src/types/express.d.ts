@@ -1,5 +1,5 @@
 import "express";
-import type { Role } from "@prisma/client";
+import type { Role } from "../../generated/prisma/client";
 
 declare module "express-serve-static-core" {
   interface Request {
