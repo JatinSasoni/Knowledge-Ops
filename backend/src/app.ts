@@ -1,10 +1,10 @@
 import express from "express";
 import type { Request, Response } from "express";
-import { prisma } from "./lib/prisma";
-import authRouter from "./routes/authRoute";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import { requireAuth } from "./middleware/requireAuth";
-import workspaceRouter from "./routes/workspaceRoute";
+import { prisma } from "./lib/prisma.js";
+import authRouter from "./routes/authRoute.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { requireAuth } from "./middleware/requireAuth.js";
+import workspaceRouter from "./routes/workspaceRoute.js";
 
 export const app = express();
 

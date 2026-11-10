@@ -4,7 +4,7 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["dist/", "generated/", "node_modules/"] }, // never lint generated code
+  { ignores: ["dist/", "src/generated/", "node_modules/"] }, // never lint generated code
 
   js.configs.recommended, // base JS rules
   ...tseslint.configs.recommended, // TS rules

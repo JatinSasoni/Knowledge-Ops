@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
-import { asyncHandler } from "../util/asyncHandler";
-import { prisma } from "../lib/prisma";
-import { AppError } from "../util/AppError";
-import { signToken } from "../lib/jwt";
-import type { loginInput, RegisterInput } from "../schemas/auth";
+import { asyncHandler } from "../util/asyncHandler.js";
+import { prisma } from "../lib/prisma.js";
+import { AppError } from "../util/AppError.js";
+import { signToken } from "../lib/jwt.js";
+import type { loginInput, RegisterInput } from "../schemas/auth.js";
 
 const publicUser = (u: { id: string; email: string; createdAt: Date }) => ({
   id: u.id,

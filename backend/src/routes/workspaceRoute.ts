@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { validate } from "../middleware/validate";
+import { validate } from "../middleware/validate.js";
 import {
   AddMemberSchema,
   CreateWorkspaceSchema,
   UpdateWorkspaceSchema,
-} from "../schemas/workspace";
+} from "../schemas/workspace.js";
 import {
   addMember,
   createWorkspace,
@@ -14,8 +14,8 @@ import {
   listMyWorkspaces,
   removeMember,
   updateWorkspace,
-} from "../controllers/workspaceController";
-import { requireMembership } from "../middleware/requireMembership";
+} from "../controllers/workspaceController.js";
+import { requireMembership } from "../middleware/requireMembership.js";
 
 const workspaceRouter = Router();
 

@@ -1,9 +1,9 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
-import { AppError } from "../util/AppError";
+import { AppError } from "../util/AppError.js";
 import { ZodError } from "zod";
 import jwt from "jsonwebtoken";
 
-import { Prisma } from "../../generated/prisma/client";
+import { Prisma } from "../generated/prisma/client.js";
 
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
   next(AppError.notFound(`Route ${req.method} ${req.originalUrl} not found`));

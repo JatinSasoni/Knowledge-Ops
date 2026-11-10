@@ -1,9 +1,9 @@
-import type { Role } from "../../generated/prisma/client";
+import type { Role } from "../generated/prisma/client.js";
 import type { RequestHandler } from "express";
-import { asyncHandler } from "../util/asyncHandler";
-import { prisma } from "../lib/prisma";
-import { AppError } from "../util/AppError";
-import { workspaceParams } from "../schemas/workspace";
+import { asyncHandler } from "../util/asyncHandler.js";
+import { prisma } from "../lib/prisma.js";
+import { AppError } from "../util/AppError.js";
+import { workspaceParams } from "../schemas/workspace.js";
 
 export const requireMembership = (...allowedRoles: Role[]): RequestHandler =>
   asyncHandler(async (req, _res, next) => {

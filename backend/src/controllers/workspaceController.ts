@@ -1,13 +1,13 @@
 import { randomBytes } from "crypto";
-import { prisma } from "../lib/prisma";
-import { AppError } from "../util/AppError";
+import { prisma } from "../lib/prisma.js";
+import { AppError } from "../util/AppError.js";
 import {
   memberParams,
   type AddMemberInput,
   type CreateWorkspaceInput,
   type UpdateWorkspaceInput,
-} from "../schemas/workspace";
-import { asyncHandler } from "../util/asyncHandler";
+} from "../schemas/workspace.js";
+import { asyncHandler } from "../util/asyncHandler.js";
 
 const slugify = (name: string) =>
   `${name
