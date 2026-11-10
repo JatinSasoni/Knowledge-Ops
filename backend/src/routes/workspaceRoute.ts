@@ -8,9 +8,11 @@ import {
 import {
   addMember,
   createWorkspace,
+  deleteWorkspace,
   getWorkspace,
   listMembers,
   listMyWorkspaces,
+  removeMember,
   updateWorkspace,
 } from "../controllers/workspaceController";
 import { requireMembership } from "../middleware/requireMembership";
@@ -21,7 +23,12 @@ workspaceRouter.post("/", validate(CreateWorkspaceSchema), createWorkspace);
 workspaceRouter.get("/", listMyWorkspaces);
 workspaceRouter.get("/:workspaceId", requireMembership(), getWorkspace);
 workspaceRouter.get("/:workspaceId/members", requireMembership(), listMembers);
-workspaceRouter.post("/:workspaceId/members", validate(AddMemberSchema), addMember);
+workspaceRouter.post(
+  "/:workspaceId/members",
+  requireMembership("ADMIN"),
+  validate(AddMemberSchema),
+  addMember,
+);
 workspaceRouter.patch(
   "/:workspaceId",
   requireMembership("ADMIN"),
