@@ -7,3 +7,10 @@ export const validate =
     req.body = schema.parse(req.body);
     next();
   };
+
+export const validateQuery =
+  (schema: ZodType): RequestHandler =>
+  (req, res, next) => {
+    res.locals.query = schema.parse(req.query);
+    next();
+  };

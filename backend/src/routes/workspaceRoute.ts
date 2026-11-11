@@ -16,6 +16,7 @@ import {
   updateWorkspace,
 } from "../controllers/workspaceController.js";
 import { requireMembership } from "../middleware/requireMembership.js";
+import documentRouter from "./documentRoute.js";
 
 const workspaceRouter = Router();
 
@@ -37,5 +38,7 @@ workspaceRouter.patch(
 );
 workspaceRouter.delete("/:workspaceId", requireMembership("ADMIN"), deleteWorkspace);
 workspaceRouter.delete("/:workspaceId/members/:userId", requireMembership("ADMIN"), removeMember);
+//--- Document Route
+workspaceRouter.use("/:workspaceId/documents", requireMembership(), documentRouter);
 
 export default workspaceRouter;
