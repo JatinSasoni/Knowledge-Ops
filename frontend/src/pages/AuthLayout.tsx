@@ -2,11 +2,17 @@ import type { ReactNode } from "react";
 import { Navigate } from "react-router";
 import { useMe } from "../features/auth/hooks";
 
-export function Wordmark({ size = "lg" }: { size?: "lg" | "sm" }) {
-  const text = size === "lg" ? "text-5xl sm:text-6xl" : "text-xl";
+export function Wordmark({
+  size = "lg",
+  className = "",
+}: {
+  size?: "lg" | "sm" | "none";
+  className?: string;
+}) {
+  const text = size === "lg" ? "text-5xl sm:text-6xl" : size === "sm" ? "text-xl" : "";
   return (
-    <span className={`font-display font-extrabold tracking-tight ${text}`}>
-      <span className="bg-[linear-gradient(transparent_58%,var(--color-marker)_58%,var(--color-marker)_92%,transparent_92%)] px-0.5">
+    <span className={`isolate font-display font-extrabold tracking-tight ${text} ${className}`}>
+      <span className="relative px-[0.04em] before:absolute before:inset-x-0 before:bottom-[0.1em] before:-z-10 before:h-[0.36em] before:bg-marker">
         Knowledge
       </span>{" "}
       Ops

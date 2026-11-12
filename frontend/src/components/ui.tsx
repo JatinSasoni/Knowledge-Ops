@@ -42,7 +42,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button({ variant = "primary", className = "", ...props }: ButtonProps) {
   const styles =
     variant === "primary"
-      ? "bg-pine text-white hover:bg-pine-dark disabled:opacity-60"
+      ? "bg-pine text-paper hover:bg-pine-dark disabled:opacity-60"
       : "text-muted hover:text-ink hover:bg-line/50";
   return (
     <button

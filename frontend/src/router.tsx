@@ -1,12 +1,14 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter } from "react-router";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppLayout } from "./pages/AppLayout";
+import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { WorkspacesPage } from "./pages/WorkspacesPage";
 
 export const router = createBrowserRouter([
+  { path: "/", element: <HomePage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   {
@@ -14,10 +16,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [
-          { path: "/", element: <Navigate to="/workspaces" replace /> },
-          { path: "/workspaces", element: <WorkspacesPage /> },
-        ],
+        children: [{ path: "/workspaces", element: <WorkspacesPage /> }],
       },
     ],
   },
