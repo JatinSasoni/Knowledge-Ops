@@ -11,6 +11,8 @@ const publicUser = (u: { id: string; email: string; createdAt: Date }) => ({
   createdAt: u.createdAt,
 });
 
+const x: any = 1;
+
 export const register = asyncHandler(async (req, res) => {
   const { email, password } = req.body as RegisterInput;
   const hashed = await bcrypt.hash(password, 10);
