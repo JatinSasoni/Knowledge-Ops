@@ -5,10 +5,11 @@ import authRouter from "./routes/authRoute.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import workspaceRouter from "./routes/workspaceRoute.js";
-
+import cookieParser from "cookie-parser";
 export const app = express();
 
 app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 
 //health route
 app.get("/health", async (_req: Request, res: Response) => {

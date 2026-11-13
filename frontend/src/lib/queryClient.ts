@@ -1,10 +1,10 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
-import { ApiError, tokenStore } from "./api";
+import { ApiError, session } from "./api";
 
-// One place for "session is no longer valid": any 401 from any request logs the user out.
+// A 401 that survives api()'s refresh-and-retry means the session is over: show "signed out".
 const onError = (error: Error) => {
   if (error instanceof ApiError && error.status === 401) {
-    tokenStore.clear();
+    session.clear();
     queryClient.setQueryData(["me"], null);
   }
 };

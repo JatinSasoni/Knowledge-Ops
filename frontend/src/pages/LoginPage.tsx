@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { Button, Field, FormError } from "../components/ui";
 import { useLogin } from "../features/auth/hooks";
 import { ApiError, fieldError } from "../lib/api";
+import { SignInAside } from "../features/auth/AuthAside";
 import { AuthLayout } from "./AuthLayout";
 
 export function LoginPage() {
@@ -23,7 +24,11 @@ export function LoginPage() {
   const hasFieldErrors = login.error instanceof ApiError && login.error.details?.length;
 
   return (
-    <AuthLayout title="Sign in">
+    <AuthLayout
+      title="Welcome back"
+      intro="Sign in to ask your workspaces and see where each answer came from."
+      aside={<SignInAside />}
+    >
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <FormError message={!hasFieldErrors ? login.error?.message : undefined} />
         <Field
