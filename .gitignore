@@ -42,3 +42,6 @@ desktop.ini
 
 # Local uploads (M2 week 6, before S3)
 uploads/
+
+# Design tooling working files
+.taste-skill/

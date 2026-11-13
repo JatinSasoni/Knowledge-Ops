@@ -1,0 +1,24 @@
+import { createBrowserRouter } from "react-router";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppLayout } from "./pages/AppLayout";
+import { HomePage } from "./pages/HomePage";
+import { LoginPage } from "./pages/LoginPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { WorkspacesPage } from "./pages/WorkspacesPage";
+
+export const router = createBrowserRouter([
+  { path: "/", element: <HomePage /> },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [{ path: "/workspaces", element: <WorkspacesPage /> }],
+      },
+    ],
+  },
+  { path: "*", element: <NotFoundPage /> },
+]);
