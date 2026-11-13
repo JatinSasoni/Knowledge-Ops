@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { AppError } from "../util/AppError.js";
-import { verifyToken } from "../lib/jwt.js";
+import { verifyAccessToken } from "../lib/tokens.js";
 
 export const requireAuth: RequestHandler = (req, _res, next) => {
   const header = req.headers.authorization;
@@ -8,7 +8,7 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
     throw AppError.unauthorized("Missing or malformed Authorization header");
   }
 
-  const payload = verifyToken(header.slice(7));
+  const payload = verifyAccessToken(header.slice(7));
   req.user = { id: payload.sub, email: payload.email };
   next();
 };

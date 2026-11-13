@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
+import { FormError } from "../components/ui";
 import { useMe } from "../features/auth/hooks";
 
 export function Wordmark({
@@ -20,20 +21,47 @@ export function Wordmark({
   );
 }
 
-export function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
+export function AuthLayout({
+  title,
+  intro,
+  aside,
+  children,
+}: {
+  title: string;
+  intro: string;
+  aside: ReactNode;
+  children: ReactNode;
+}) {
   const { data: user, isPending } = useMe();
   if (!isPending && user) return <Navigate to="/workspaces" replace />;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-10 px-6 py-12">
-      <div className="flex flex-col gap-3">
-        <Wordmark />
-        <p className="text-muted">Your team's documents, searchable and answerable in one place.</p>
-      </div>
-      <section className="flex flex-col gap-6">
-        <h1 className="font-display text-2xl font-semibold">{title}</h1>
-        {children}
-      </section>
-    </main>
+    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <main className="flex flex-col px-5 py-6 md:px-10">
+        <header className="flex items-center justify-between gap-4">
+          <Link to="/" aria-label="Knowledge Ops home" className="whitespace-nowrap">
+            <Wordmark size="sm" />
+          </Link>
+          <Link to="/" className="text-[15px] text-muted transition-colors hover:text-pine">
+            Back to home
+          </Link>
+        </header>
+
+        <section className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center gap-8 py-14">
+          <div className="flex flex-col gap-3">
+            <h1 className="font-display text-[44px] font-extrabold leading-[1] tracking-[-0.035em]">
+              {title}
+            </h1>
+            <p className="text-[18px] leading-[1.5] text-ink/80">{intro}</p>
+          </div>
+          {!navigator.cookieEnabled ? (
+            <FormError message="Signing in needs cookies. Turn them on for this site, then reload the page." />
+          ) : null}
+          {children}
+        </section>
+      </main>
+
+      {aside}
+    </div>
   );
 }

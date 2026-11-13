@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { Button, Field, FormError } from "../components/ui";
 import { useRegister } from "../features/auth/hooks";
 import { ApiError, fieldError } from "../lib/api";
+import { RegisterAside } from "../features/auth/AuthAside";
 import { AuthLayout } from "./AuthLayout";
 
 export function RegisterPage() {
@@ -26,7 +27,11 @@ export function RegisterPage() {
       : error?.message;
 
   return (
-    <AuthLayout title="Create your account">
+    <AuthLayout
+      title="Create your account"
+      intro="One account for every workspace you join. It takes less than a minute."
+      aside={<RegisterAside />}
+    >
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <FormError message={!hasFieldErrors ? message : undefined} />
         <Field

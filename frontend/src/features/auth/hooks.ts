@@ -1,48 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { api, tokenStore } from "../../lib/api";
+import { api, ApiError, refreshSession, session } from "../../lib/api";
 import type { AuthResponse, User } from "../../types";
 
 export const meKey = ["me"] as const;
 
 type Credentials = { email: string; password: string };
 
-const login = (input: Credentials) =>
-  api<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(input) });
-
 // The current user is server state: it lives in the query cache, not in a React context.
+// After a page reload there's no access token in memory, so restore the session from the
+// refresh cookie first. No cookie (or an expired one) simply means "signed out".
 export function useMe() {
   return useQuery({
     queryKey: meKey,
-    queryFn: async () => (tokenStore.get() ? (await api<{ user: User }>("/auth/me")).user : null),
+    queryFn: async (): Promise<User | null> => {
+      if (!session.get()) {
+        try {
+          await refreshSession();
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 401) return null;
+          throw error; // network or server error: let the query report it
+        }
+      }
+      return (await api<{ user: User }>("/auth/me")).user;
+    },
     staleTime: Infinity,
   });
 }
 
 function useStartSession() {
   const qc = useQueryClient();
-  return ({ user, token }: AuthResponse) => {
-    tokenStore.set(token);
+  return ({ user, accessToken }: AuthResponse) => {
+    session.set(accessToken);
     qc.setQueryData(meKey, user);
   };
 }
 
 export function useLogin() {
   const startSession = useStartSession();
-  return useMutation({ mutationFn: login, onSuccess: startSession });
+  return useMutation({
+    mutationFn: (input: Credentials) =>
+      api<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: startSession,
+  });
 }
 
-// The backend's register returns no token, so sign in right after creating the account.
+// Register signs the user in directly: the backend sets the refresh cookie and returns
+// an access token, so there's no second login request.
 export function useRegister() {
   const startSession = useStartSession();
   return useMutation({
-    mutationFn: async (input: Credentials) => {
-      await api<{ user: User }>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify(input),
-      });
-      return login(input);
-    },
+    mutationFn: (input: Credentials) =>
+      api<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(input) }),
     onSuccess: startSession,
   });
 }
@@ -50,8 +59,14 @@ export function useRegister() {
 export function useLogout() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  return () => {
-    tokenStore.clear();
+  return async () => {
+    try {
+      // Revokes the refresh token server-side and clears the cookie.
+      await api<void>("/auth/logout", { method: "POST" });
+    } catch {
+      /* already signed out or offline: still clear everything locally */
+    }
+    session.clear();
     qc.clear(); // drop every cached response so the next user never sees this user's data
     navigate("/login", { replace: true });
   };
