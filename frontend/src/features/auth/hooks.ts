@@ -1,73 +1,66 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { api, ApiError, refreshSession, session } from "../../lib/api";
+import { ApiError, refreshSession, session } from "../../lib/api";
 import type { AuthResponse, User } from "../../types";
+import * as authApi from "./api";
 
-export const meKey = ["me"] as const;
+export const meKey = ["me"];
 
-type Credentials = { email: string; password: string };
-
-// The current user is server state: it lives in the query cache, not in a React context.
-// After a page reload there's no access token in memory, so restore the session from the
-// refresh cookie first. No cookie (or an expired one) simply means "signed out".
+// Who is signed in? Returns the user, or null when signed out.
 export function useMe() {
   return useQuery({
     queryKey: meKey,
-    queryFn: async (): Promise<User | null> => {
-      if (!session.get()) {
-        try {
-          await refreshSession();
-        } catch (error) {
-          if (error instanceof ApiError && error.status === 401) return null;
-          throw error; // network or server error: let the query report it
-        }
-      }
-      return (await api<{ user: User }>("/auth/me")).user;
-    },
+    queryFn: loadCurrentUser,
     staleTime: Infinity,
   });
 }
 
+async function loadCurrentUser(): Promise<User | null> {
+  // After a page reload the access token (kept in memory) is gone.
+  // Try to get a new one from the refresh cookie before asking who we are.
+  if (!session.get()) {
+    try {
+      await refreshSession();
+    } catch (error) {
+      const noSession = error instanceof ApiError && error.status === 401;
+      if (noSession) return null; // simply signed out
+      throw error; // server down etc.: show an error, don't pretend we're signed out
+    }
+  }
+  return authApi.getMe();
+}
+
+// After login or register: keep the token and remember the user.
 function useStartSession() {
-  const qc = useQueryClient();
-  return ({ user, accessToken }: AuthResponse) => {
-    session.set(accessToken);
-    qc.setQueryData(meKey, user);
+  const queryClient = useQueryClient();
+  return (result: AuthResponse) => {
+    session.set(result.accessToken);
+    queryClient.setQueryData(meKey, result.user);
   };
 }
 
 export function useLogin() {
   const startSession = useStartSession();
-  return useMutation({
-    mutationFn: (input: Credentials) =>
-      api<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(input) }),
-    onSuccess: startSession,
-  });
+  return useMutation({ mutationFn: authApi.login, onSuccess: startSession });
 }
 
-// Register signs the user in directly: the backend sets the refresh cookie and returns
-// an access token, so there's no second login request.
 export function useRegister() {
   const startSession = useStartSession();
-  return useMutation({
-    mutationFn: (input: Credentials) =>
-      api<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(input) }),
-    onSuccess: startSession,
-  });
+  return useMutation({ mutationFn: authApi.register, onSuccess: startSession });
 }
 
 export function useLogout() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   return async () => {
     try {
-      // Revokes the refresh token server-side and clears the cookie.
-      await api<void>("/auth/logout", { method: "POST" });
+      await authApi.logout(); // the backend revokes the refresh token and clears the cookie
     } catch {
-      /* already signed out or offline: still clear everything locally */
+      // Already signed out or offline: still sign out locally.
     }
     session.clear();
-    qc.clear(); // drop every cached response so the next user never sees this user's data
+    queryClient.clear(); // forget all cached data so the next user can't see it
     navigate("/login", { replace: true });
   };
 }
