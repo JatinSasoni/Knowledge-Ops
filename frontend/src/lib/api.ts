@@ -1,7 +1,15 @@
-/* ---------- Session ----------
-   The access token lives only in memory (this variable). A reload wipes it, and the
-   httpOnly refresh cookie, which JavaScript can never read, gets a new one from
-   POST /auth/refresh. */
+import axios, { type InternalAxiosRequestConfig } from "axios";
+
+/*
+ * How the frontend talks to the backend
+ * -------------------------------------
+ * 1. Every request goes through `http` (one axios client).
+ * 2. Before a request is sent, we add the access token to the Authorization header.
+ * 3. If a request comes back 401 (access token expired), we get a new access token
+ *    from /auth/refresh and send the original request again, once.
+ */
+
+/* ---------- Access token: kept in memory only ---------- */
 
 let accessToken: string | null = null;
 
@@ -15,16 +23,84 @@ export const session = {
   },
 };
 
-// Tokens from before the cookie-based flow were kept in localStorage. Remove any leftover.
-try {
-  localStorage.removeItem("token");
-} catch {
-  /* storage blocked: nothing to remove */
+/* ---------- The axios client ---------- */
+
+export const http = axios.create({
+  baseURL: "/api/v1", // Vite forwards /api to the backend in dev; Nginx will in production
+  withCredentials: true, // send the httpOnly refresh cookie
+});
+
+// Step 2: attach the access token to every request.
+http.interceptors.request.use((config) => {
+  const token = session.get();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Step 3: on 401, refresh once and retry the request.
+http.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const request = error.config as InternalAxiosRequestConfig & { retried?: boolean };
+    const status = error.response?.status;
+    const isAuthRoute = request?.url?.startsWith("/auth/");
+
+    // For /auth/* a 401 means "wrong password" or "no session", not "token expired".
+    if (status === 401 && request && !request.retried && !isAuthRoute) {
+      request.retried = true;
+      await refreshSession(); // throws if the session is really over
+      return http(request); // the request interceptor adds the new token
+    }
+
+    throw toApiError(error);
+  },
+);
+
+/* ---------- Refreshing the access token ---------- */
+
+// If several requests fail at the same time, they all wait for this one refresh
+// instead of each starting their own.
+let refreshInProgress: Promise<string> | null = null;
+
+export function refreshSession(): Promise<string> {
+  if (!refreshInProgress) {
+    refreshInProgress = doRefresh().finally(() => {
+      refreshInProgress = null;
+    });
+  }
+  return refreshInProgress;
 }
+
+async function doRefresh(): Promise<string> {
+  try {
+    // The Web Lock makes browser tabs take turns, so two tabs never send the same
+    // refresh cookie at once (the backend would treat the second one as stolen).
+    const token = await runInAllTabsLock(async () => {
+      const response = await http.post<{ accessToken: string }>("/auth/refresh");
+      return response.data.accessToken;
+    });
+    session.set(token);
+    return token;
+  } catch (error) {
+    session.clear();
+    throw toApiError(error);
+  }
+}
+
+function runInAllTabsLock<T>(task: () => Promise<T>): Promise<T> {
+  if ("locks" in navigator) {
+    return navigator.locks.request("knowledge-ops-refresh", task);
+  }
+  return task(); // very old browsers: no cross-tab lock
+}
+
+/* ---------- Errors ---------- */
 
 export type FieldError = { path: string; message: string };
 
-// Mirrors the backend errorHandler's { error: { code, message, details } } shape.
+// Same shape as the backend's errorHandler: { error: { code, message, details } }
 export class ApiError extends Error {
   status: number;
   code: string;
@@ -39,72 +115,31 @@ export class ApiError extends Error {
   }
 }
 
-type ErrorBody = { error?: { code?: string; message?: string; details?: unknown } };
+type ErrorBody = { error?: { code?: string; message?: string; details?: FieldError[] } };
 
-async function toApiError(res: Response): Promise<ApiError> {
-  const data: unknown = await res.json().catch(() => null);
-  const err = (data as ErrorBody | null)?.error;
-  return new ApiError(
-    res.status,
-    err?.code ?? "UNKNOWN",
-    err?.message ?? res.statusText,
-    Array.isArray(err?.details) ? (err.details as FieldError[]) : undefined,
-  );
-}
+function toApiError(error: unknown): ApiError {
+  if (error instanceof ApiError) return error;
 
-/* ---------- Refresh: one request at a time ----------
-   The backend rotates the refresh token on every call and treats a reused token as theft,
-   revoking the whole session. If five requests hit a 401 at once and each refreshed on its
-   own, four would replay a token that was just rotated and log the user out. So every
-   caller shares the same in-flight promise. */
-
-let refreshing: Promise<string> | null = null;
-
-export function refreshSession(): Promise<string> {
-  refreshing ??= (async () => {
-    try {
-      const res = await fetch("/api/v1/auth/refresh", {
-        method: "POST",
-        credentials: "same-origin",
-      });
-      if (!res.ok) throw await toApiError(res);
-      const { accessToken: token } = (await res.json()) as { accessToken: string };
-      session.set(token);
-      return token;
-    } catch (error) {
-      session.clear();
-      throw error;
-    } finally {
-      refreshing = null;
+  if (axios.isAxiosError<ErrorBody>(error)) {
+    // The server answered with an error status
+    if (error.response) {
+      const body = error.response.data?.error;
+      return new ApiError(
+        error.response.status,
+        body?.code ?? "UNKNOWN",
+        body?.message ?? "Something went wrong",
+        body?.details,
+      );
     }
-  })();
-  return refreshing;
-}
-
-// Endpoints whose 401 means "wrong credentials" or "no session", never "token expired".
-const NO_RETRY = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/logout"];
-
-export async function api<T>(path: string, init: RequestInit = {}, retried = false): Promise<T> {
-  const headers = new Headers(init.headers);
-  if (init.body) headers.set("Content-Type", "application/json");
-  const token = session.get();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-
-  // Relative URL: Vite proxies /api in dev, Nginx will in production. Same origin, so the
-  // refresh cookie (path /api/v1/auth) is sent by the browser automatically.
-  const res = await fetch(`/api/v1${path}`, { ...init, headers, credentials: "same-origin" });
-
-  // Access token expired (15 min): get a new one once, then repeat the original request.
-  if (res.status === 401 && !retried && !NO_RETRY.includes(path)) {
-    await refreshSession(); // throws ApiError(401) if the session is really over
-    return api<T>(path, init, true);
+    // No answer at all: server down or no internet
+    return new ApiError(0, "NETWORK", "Can't reach the server. Check your connection.");
   }
 
-  if (res.status === 204) return undefined as T;
-  // fetch only rejects on network failure; HTTP errors must be thrown by hand.
-  if (!res.ok) throw await toApiError(res);
-  return (await res.json()) as T;
+  return new ApiError(0, "UNKNOWN", "Something went wrong");
 }
 
-export const fieldError = (error: unknown, path: string) =>
-  error instanceof ApiError ? error.details?.find((d) => d.path === path)?.message : undefined;
+// Message for one form field, e.g. fieldError(error, "email")
+export function fieldError(error: unknown, field: string): string | undefined {
+  if (!(error instanceof ApiError)) return undefined;
+  return error.details?.find((detail) => detail.path === field)?.message;
+}

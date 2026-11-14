@@ -10,19 +10,19 @@ export function AppLayout() {
   return (
     <div className="min-h-dvh">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
-          <Link to="/workspaces" aria-label="Knowledge Ops home">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-5 py-3 md:px-10">
+          <Link to="/workspaces" aria-label="Your workspaces" className="whitespace-nowrap">
             <Wordmark size="sm" />
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted sm:inline">{user?.email}</span>
-            <Button variant="quiet" onClick={logout}>
+            <Button variant="quiet" onClick={() => void logout()}>
               Sign out
             </Button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="mx-auto max-w-[1200px] px-5 py-10 md:px-10 lg:py-14">
         <Outlet />
       </main>
     </div>

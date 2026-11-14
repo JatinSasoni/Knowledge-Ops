@@ -28,6 +28,7 @@ export function LoginPage() {
       title="Welcome back"
       intro="Sign in to ask your workspaces and see where each answer came from."
       aside={<SignInAside />}
+      asideSide="left"
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <FormError message={!hasFieldErrors ? login.error?.message : undefined} />

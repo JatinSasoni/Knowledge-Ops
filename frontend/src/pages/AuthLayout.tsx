@@ -25,19 +25,25 @@ export function AuthLayout({
   title,
   intro,
   aside,
+  asideSide = "right",
   children,
 }: {
   title: string;
   intro: string;
   aside: ReactNode;
+  asideSide?: "left" | "right";
   children: ReactNode;
 }) {
   const { data: user, isPending } = useMe();
   if (!isPending && user) return <Navigate to="/workspaces" replace />;
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <main className="flex flex-col px-5 py-6 md:px-10">
+    <div
+      className={`grid min-h-dvh ${asideSide === "left" ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]" : "lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"}`}
+    >
+      <main
+        className={`flex flex-col px-5 py-6 md:px-10 ${asideSide === "left" ? "lg:order-last" : ""}`}
+      >
         <header className="flex items-center justify-between gap-4">
           <Link to="/" aria-label="Knowledge Ops home" className="whitespace-nowrap">
             <Wordmark size="sm" />
