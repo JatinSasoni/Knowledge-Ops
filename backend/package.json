@@ -13,7 +13,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:migrate": "prisma migrate dev && prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "postdb:migrate": "prisma generate",
     "db:studio": "prisma studio"
   },
   "author": "",
@@ -35,6 +36,8 @@
     "typescript-eslint": "^8.71.1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1169.0",
+    "@aws-sdk/s3-request-presigner": "^3.1169.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.3",

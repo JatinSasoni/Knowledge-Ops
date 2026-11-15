@@ -25,6 +25,33 @@ services:
       postgres:
         condition: service_healthy
 
+  storage:
+    image: rustfs/rustfs@sha256:b81d16a90ee25bd9511280127ca1471788c6e874cf0f0da759645f46b2dc1d74
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in .env}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in .env}
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "9000:9000" # S3 API: the browser uploads here
+      - "9001:9001" # web console
+    volumes:
+      - storagedata:/data
+
+  storage-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      - storage
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: >
+      /bin/sh -c "
+      until aws --endpoint-url http://storage:9000 s3api list-buckets > /dev/null 2>&1; do sleep 2; done;
+      aws --endpoint-url http://storage:9000 s3 mb s3://documents || true
+      "
+
   api:
     build: ./backend
     restart: unless-stopped
@@ -35,8 +62,16 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       ACCESS_TOKEN_TTL: 15m
       REFRESH_TOKEN_TTL_DAYS: 30
+      S3_ENDPOINT: http://storage:9000 # API → storage, inside Docker
+      S3_PUBLIC_ENDPOINT: http://localhost:9000 # browser → storage
+      S3_REGION: us-east-1
+      S3_BUCKET: documents
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
     depends_on:
       migrate:
+        condition: service_completed_successfully
+      storage-init:
         condition: service_completed_successfully
 
   web:
@@ -49,3 +84,4 @@ services:
 
 volumes:
   pgdata:
+  storagedata:
