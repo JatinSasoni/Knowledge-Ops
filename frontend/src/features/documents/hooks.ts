@@ -11,10 +11,10 @@ export function useDocuments(workspaceId: string, page: number, search: string) 
   });
 }
 
-export function useCreateDocument(workspaceId: string) {
+export function useDeleteDocument(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (title: string) => documentsApi.createDocument(workspaceId, title),
+    mutationFn: (documentId: string) => documentsApi.deleteDocument(workspaceId, documentId),
     onSuccess: () => {
       // Refreshes the workspace (document count) and every documents page under it.
       queryClient.invalidateQueries({ queryKey: keys.workspace(workspaceId) });
@@ -22,11 +22,34 @@ export function useCreateDocument(workspaceId: string) {
   });
 }
 
-export function useDeleteDocument(workspaceId: string) {
+type UploadInput = {
+  file: File;
+  mimeType: string;
+  onStep: (step: string) => void;
+  onProgress: (percent: number) => void;
+};
+
+// The whole upload in one mutation: ask for a URL, upload the file, start processing.
+export function useUploadDocument(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (documentId: string) => documentsApi.deleteDocument(workspaceId, documentId),
-    onSuccess: () => {
+    mutationFn: async ({ file, mimeType, onStep, onProgress }: UploadInput) => {
+      onStep("Preparing…");
+      const { document, uploadUrl } = await documentsApi.requestUpload(workspaceId, {
+        name: file.name,
+        mimeType,
+        size: file.size,
+      });
+
+      onStep("Uploading…");
+      await documentsApi.uploadToStorage(uploadUrl, file, mimeType, onProgress);
+
+      onStep("Starting processing…");
+      await documentsApi.processDocument(workspaceId, document.id);
+      return document;
+    },
+    // Refresh the list either way: even a failed upload may have created a document row.
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: keys.workspace(workspaceId) });
     },
   });

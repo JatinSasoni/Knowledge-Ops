@@ -32,10 +32,16 @@ export type Member = {
   user: { id: string; email: string };
 };
 
+export type DocumentStatus = "UPLOADED" | "PROCESSING" | "READY" | "FAILED";
+
 export type DocumentRecord = {
   id: string;
   title: string;
-  fileUrl: string | null;
+  fileKey: string | null;
+  mimeType: string | null;
+  size: number | null; // bytes
+  status: DocumentStatus;
+  error: string | null; // readable reason when status is FAILED
   workspaceId: string;
   createdAt: string;
 };

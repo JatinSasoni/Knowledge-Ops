@@ -11,6 +11,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum DocStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
 model User{
   id  String @id @default(uuid())
   email String @unique
@@ -58,7 +65,11 @@ model Member {
 model Document {
   id String @id @default(uuid())
   title String
-  fileUrl String?
+  fileKey     String?
+  mimeType    String?
+  size Int?
+  status DocStatus @default(UPLOADED)
+  error String?
   workspaceId String
   workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
   createdAt DateTime @default(now())
