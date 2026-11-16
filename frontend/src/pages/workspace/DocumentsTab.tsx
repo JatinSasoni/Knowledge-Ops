@@ -1,10 +1,25 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { Button, ConfirmButton, FormError, Panel } from "../../components/ui";
-import { useCreateDocument, useDeleteDocument, useDocuments } from "../../features/documents/hooks";
-import { fieldError } from "../../lib/api";
-import { formatDate, plural } from "../../lib/format";
+import { useDeleteDocument, useDocuments } from "../../features/documents/hooks";
+import { formatBytes, formatDate, plural } from "../../lib/format";
 import { useDebounced } from "../../lib/useDebounced";
+import type { DocumentStatus } from "../../types";
 import { useWorkspaceContext } from "./context";
+import { UploadPanel } from "./UploadPanel";
+
+const STATUS = {
+  UPLOADED: { label: "Uploaded", style: "bg-sand text-ink" },
+  PROCESSING: { label: "Processing", style: "bg-marker/50 text-ink" },
+  READY: { label: "Ready", style: "bg-pine/12 text-pine" },
+  FAILED: { label: "Failed", style: "bg-danger/10 text-danger" },
+} satisfies Record<DocumentStatus, { label: string; style: string }>;
+
+function fileLabel(mimeType: string | null) {
+  if (mimeType === "application/pdf") return "PDF";
+  if (mimeType === "text/markdown") return "MD";
+  if (mimeType === "text/plain") return "TXT";
+  return "DOC";
+}
 
 export function DocumentsTab() {
   const { workspace } = useWorkspaceContext();
@@ -15,20 +30,11 @@ export function DocumentsTab() {
   const search = useDebounced(searchText.trim(), 300);
 
   const documents = useDocuments(workspace.id, page, search);
-  const createDocument = useCreateDocument(workspace.id);
   const deleteDocument = useDeleteDocument(workspace.id);
-  const [title, setTitle] = useState("");
 
   function onSearchChange(value: string) {
     setSearchText(value);
     setPage(1); // a new search starts from the first page
-  }
-
-  function onAddDocument(e: FormEvent) {
-    e.preventDefault();
-    createDocument.mutate(title.trim(), {
-      onSuccess: () => setTitle(""),
-    });
   }
 
   function onDelete(documentId: string) {
@@ -79,7 +85,7 @@ export function DocumentsTab() {
             <p className="mt-1 text-muted">
               {search
                 ? "Try a shorter or different word."
-                : "Add the first one with the form on the right."}
+                : "Add the first one with the panel on the right."}
             </p>
           </Panel>
         )}
@@ -93,16 +99,25 @@ export function DocumentsTab() {
                   key={document.id}
                   className={`flex items-center gap-4 px-5 py-3.5 ${index > 0 ? "border-t border-line" : ""}`}
                 >
-                  <span className="grid h-10 w-8 shrink-0 place-items-center rounded-sm bg-paper text-[10px] font-bold text-muted">
-                    DOC
+                  <span className="grid h-10 w-9 shrink-0 place-items-center rounded-sm bg-paper text-[10px] font-bold text-muted">
+                    {fileLabel(document.mimeType)}
                   </span>
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{document.title}</span>
                     <span className="text-sm text-muted">
                       Added {formatDate(document.createdAt)}
+                      {document.size !== null && ` · ${formatBytes(document.size)}`}
                     </span>
+                    {document.status === "FAILED" && document.error && (
+                      <span className="text-sm text-danger">{document.error}</span>
+                    )}
                   </span>
-                  <span className="ml-auto">
+                  <span
+                    className={`ml-auto shrink-0 rounded px-2 py-0.5 text-xs font-semibold ${STATUS[document.status].style}`}
+                  >
+                    {STATUS[document.status].label}
+                  </span>
+                  <span>
                     <ConfirmButton
                       label="Delete"
                       confirmLabel="Delete for everyone?"
@@ -136,33 +151,7 @@ export function DocumentsTab() {
       </div>
 
       <aside className="lg:col-span-4">
-        <Panel className="bg-sand p-6">
-          <h2 className="font-display text-[22px] font-bold">Add a document</h2>
-          <p className="mt-1 text-[15px] text-ink/75">
-            For now a document is its title. Uploading files and asking questions come next.
-          </p>
-          <form onSubmit={onAddDocument} className="mt-4 flex flex-col gap-3" noValidate>
-            <label htmlFor="doc-title" className="text-sm font-medium">
-              Title
-            </label>
-            <input
-              id="doc-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Refund policy"
-              maxLength={200}
-              className="rounded-md border border-line bg-surface px-3 py-2.5 outline-none focus:border-pine"
-            />
-            {createDocument.isError && (
-              <FormError
-                message={fieldError(createDocument.error, "title") ?? createDocument.error.message}
-              />
-            )}
-            <Button type="submit" disabled={createDocument.isPending || !title.trim()}>
-              {createDocument.isPending ? "Adding…" : "Add document"}
-            </Button>
-          </form>
-        </Panel>
+        <UploadPanel workspaceId={workspace.id} />
       </aside>
     </div>
   );

@@ -14,6 +14,7 @@ const s3 = new S3Client({
   region: env.S3_REGION,
   credentials,
   forcePathStyle: true,
+  requestChecksumCalculation: "WHEN_REQUIRED",
 });
 
 // Links for the browser are signed with the address the browser will use.
