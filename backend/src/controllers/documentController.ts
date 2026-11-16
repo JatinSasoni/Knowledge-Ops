@@ -10,6 +10,7 @@ import {
 import { AppError } from "../util/AppError.js";
 import { asyncHandler } from "../util/asyncHandler.js";
 import { createUploadUrl, deleteFile, fileExists } from "../lib/storage.js";
+import { ingestQueue } from "../lib/queue.js";
 
 const EXTENSION = {
   "application/pdf": ".pdf",
@@ -39,7 +40,25 @@ export const processDocument = asyncHandler(async (req, res) => {
   if (!(await fileExists(document.fileKey))) {
     throw AppError.conflict("The file hasn't finished uploading");
   }
-  res.status(202).json({ document });
+
+  const { count } = await prisma.document.updateMany({
+    where: { id: document.id, status: { in: ["UPLOADED", "FAILED"] } },
+    data: { status: "PROCESSING", error: null },
+  });
+
+  if (count === 0) throw AppError.conflict("This document is already being processed or is ready");
+
+  try {
+    await ingestQueue.add("ingest", { documentId: document.id });
+  } catch {
+    await prisma.document.update({
+      where: { id: document.id },
+      data: { status: "FAILED", error: "Couldn't start processing. Please try again." },
+    });
+    throw new AppError(503, "Processing is unavailable right now");
+  }
+
+  res.status(202).json({ document: { ...document, status: "PROCESSING" } });
 });
 
 export const listDocuments = asyncHandler(async (req, res) => {

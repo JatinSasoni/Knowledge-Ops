@@ -8,6 +8,13 @@ export function useDocuments(workspaceId: string, page: number, search: string) 
     queryFn: () => documentsApi.getDocuments(workspaceId, page, search),
     // While the next page loads, keep showing the current one (no empty flash).
     placeholderData: keepPreviousData,
+    // Live status: while any document on this page is being processed, check again every
+    // 2.5 seconds. Once none are, polling stops by itself (false = don't refetch).
+    refetchInterval: (query) => {
+      const items = query.state.data?.items ?? [];
+      const anyProcessing = items.some((document) => document.status === "PROCESSING");
+      return anyProcessing ? 2500 : false;
+    },
   });
 }
 
@@ -51,6 +58,17 @@ export function useUploadDocument(workspaceId: string) {
     // Refresh the list either way: even a failed upload may have created a document row.
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: keys.workspace(workspaceId) });
+    },
+  });
+}
+
+// Retry a failed document: the same "process" endpoint moves it from FAILED back to PROCESSING.
+export function useRetryDocument(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => documentsApi.processDocument(workspaceId, documentId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: keys.documents(workspaceId) });
     },
   });
 }

@@ -15,7 +15,9 @@
     "format:check": "prettier --check .",
     "db:migrate": "prisma migrate dev",
     "postdb:migrate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "dev:worker": "tsx watch src/worker.ts",
+    "start:worker": "node dist/worker.js"
   },
   "author": "",
   "license": "ISC",
@@ -41,9 +43,11 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^6.7.6",
     "cookie-parser": "^1.4.7",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.1",
     "zod": "^4.6.5"
