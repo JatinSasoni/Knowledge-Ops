@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, ConfirmButton, FormError, Panel } from "../../components/ui";
-import { useDeleteDocument, useDocuments } from "../../features/documents/hooks";
+import { useDeleteDocument, useDocuments, useRetryDocument } from "../../features/documents/hooks";
 import { formatBytes, formatDate, plural } from "../../lib/format";
 import { useDebounced } from "../../lib/useDebounced";
 import type { DocumentStatus } from "../../types";
@@ -9,7 +9,7 @@ import { UploadPanel } from "./UploadPanel";
 
 const STATUS = {
   UPLOADED: { label: "Uploaded", style: "bg-sand text-ink" },
-  PROCESSING: { label: "Processing", style: "bg-marker/50 text-ink" },
+  PROCESSING: { label: "Processing", style: "bg-marker/50 text-ink animate-pulse" },
   READY: { label: "Ready", style: "bg-pine/12 text-pine" },
   FAILED: { label: "Failed", style: "bg-danger/10 text-danger" },
 } satisfies Record<DocumentStatus, { label: string; style: string }>;
@@ -31,6 +31,7 @@ export function DocumentsTab() {
 
   const documents = useDocuments(workspace.id, page, search);
   const deleteDocument = useDeleteDocument(workspace.id);
+  const retryDocument = useRetryDocument(workspace.id);
 
   function onSearchChange(value: string) {
     setSearchText(value);
@@ -117,6 +118,16 @@ export function DocumentsTab() {
                   >
                     {STATUS[document.status].label}
                   </span>
+                  {document.status === "FAILED" && (
+                    <button
+                      type="button"
+                      onClick={() => retryDocument.mutate(document.id)}
+                      disabled={retryDocument.isPending}
+                      className="rounded-md px-3 py-1.5 text-sm font-semibold text-pine transition-colors hover:bg-pine/10 disabled:opacity-50"
+                    >
+                      Retry
+                    </button>
+                  )}
                   <span>
                     <ConfirmButton
                       label="Delete"
@@ -129,6 +140,10 @@ export function DocumentsTab() {
               ))}
             </ul>
           </Panel>
+        )}
+
+        {retryDocument.isError && (
+          <FormError message={`Couldn't retry: ${retryDocument.error.message}`} />
         )}
 
         {deleteDocument.isError && (

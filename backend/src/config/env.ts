@@ -15,6 +15,7 @@ const envSchema = z.object({
   S3_BUCKET: z.string().default("documents"),
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
+  REDIS_URL: z.url(),
 });
 
 const parsed = envSchema.safeParse(process.env);
