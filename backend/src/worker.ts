@@ -1,40 +1,30 @@
 import { prisma } from "./lib/prisma.js";
-import { setTimeout as sleep } from "node:timers/promises";
 import { Worker } from "bullmq";
 import { redis, type IngestJob } from "./lib/queue.js";
+import { ingestDocument } from "./ingest/ingestDocument.js";
 
-async function ingest(documentId: string) {
-  const document = await prisma.document.findUnique({
-    where: { id: documentId },
-  });
-
-  if (!document) return;
-
-  //   await sleep(2000);
-  await sleep(2000);
-
-  await prisma.document.updateMany({
-    where: { id: documentId },
-    data: { status: "READY" },
-  });
-}
-
-const worker = new Worker<IngestJob>("ingest", (job) => ingest(job.data.documentId), {
+const worker = new Worker<IngestJob>("ingest", (job) => ingestDocument(job.data.documentId), {
   connection: redis,
-  concurrency: 2, // handle two documents at a time
+  concurrency: 2,
 });
 
 // After the LAST attempt fails, record a readable reason on the document
 worker.on("failed", async (job, error) => {
   if (!job) return;
   const attempts = job.opts.attempts ?? 1;
+  const unrecoverable = error.name === "UnrecoverableError";
   console.log(`Job ${job.id} attempt ${job.attemptsMade}/${attempts} failed: ${error.message}`);
 
-  if (job.attemptsMade < attempts) return; // bullmq retries it
+  if (job.attemptsMade < attempts && !unrecoverable) return;
 
   await prisma.document.updateMany({
     where: { id: job.data.documentId },
-    data: { status: "FAILED", error: error.message.slice(0, 500) },
+    data: {
+      status: "FAILED",
+      error: unrecoverable
+        ? error.message
+        : "Processing failed after several attempts. Try again in a few minutes.",
+    },
   });
 });
 

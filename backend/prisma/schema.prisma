@@ -47,6 +47,7 @@ model Workspace{
   slug String @unique
   members Member[]
   documents Document[]
+  chunk DocumentChunk[]
   createdAt DateTime @default(now())
 }
 
@@ -73,6 +74,22 @@ model Document {
   workspaceId String
   workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
   createdAt DateTime @default(now())
+  chunk DocumentChunk[]
+
+  @@index([workspaceId])
+}
+
+model DocumentChunk {
+  id String @id @default(uuid())
+  documentId String
+  workspaceId String
+  index Int // position in the document: 0, 1, 2… (used for citations later)
+  content String
+  tokenCount Int
+  document Document @relation(fields: [documentId],references: [id],onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, index])
   @@index([workspaceId])
 }
 

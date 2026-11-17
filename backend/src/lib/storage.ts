@@ -3,6 +3,7 @@ import {
   DeleteObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  GetObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -42,6 +43,12 @@ export async function fileExists(key: string) {
   } catch {
     return false;
   }
+}
+
+export async function downloadFile(key: string): Promise<Buffer> {
+  const response = await s3.send(new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: key }));
+  if (!response.Body) throw new Error("The stored file is empty");
+  return Buffer.from(await response.Body.transformToByteArray());
 }
 
 export async function deleteFile(key: string) {
