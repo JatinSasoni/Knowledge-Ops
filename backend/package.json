@@ -50,6 +50,7 @@
     "ioredis": "^6.0.0",
     "js-tiktoken": "^1.0.21",
     "jsonwebtoken": "^9.0.3",
+    "openai": "^7.57.0",
     "pg": "^8.23.1",
     "unpdf": "^1.9.1",
     "zod": "^4.6.5"

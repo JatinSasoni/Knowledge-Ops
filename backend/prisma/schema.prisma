@@ -81,6 +81,7 @@ model Document {
 
 model DocumentChunk {
   id String @id @default(uuid())
+  embedding   Unsupported("vector(1536)")?
   documentId String
   workspaceId String
   index Int // position in the document: 0, 1, 2… (used for citations later)
