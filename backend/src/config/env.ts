@@ -16,6 +16,8 @@ const envSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
   REDIS_URL: z.url(),
+  OPENAI_API_KEY: z.string().min(1),
+  EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
 });
 
 const parsed = envSchema.safeParse(process.env);
