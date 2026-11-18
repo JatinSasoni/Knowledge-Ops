@@ -18,12 +18,23 @@ enum DocStatus {
   FAILED
 }
 
+enum Role {
+  ADMIN 
+  MEMBER
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
 model User{
   id  String @id @default(uuid())
   email String @unique
   name String?
   password String
   members Member[]
+  conversations Conversation[]
   createdAt DateTime @default(now())
   refreshTokens RefreshToken[]
 }
@@ -48,6 +59,7 @@ model Workspace{
   members Member[]
   documents Document[]
   chunk DocumentChunk[]
+  conversations Conversation[]
   createdAt DateTime @default(now())
 }
 
@@ -94,7 +106,28 @@ model DocumentChunk {
   @@index([workspaceId])
 }
 
-enum Role {
-  ADMIN 
-  MEMBER
- }
+model Conversation {
+  id          String    @id @default(uuid())
+  title       String
+  workspaceId String
+  userId      String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  role           MessageRole
+  content        String
+  citations      Json?        // the sources shown with an answer: [{ n, documentId, documentTitle, index, content, similarity }]
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}

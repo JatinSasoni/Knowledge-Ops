@@ -19,6 +19,8 @@ import { requireMembership } from "../middleware/requireMembership.js";
 import documentRouter from "./documentRoute.js";
 import { SearchSchema } from "../schemas/search.js";
 import { search } from "../controllers/searchController.js";
+import { ChatSchema } from "../schemas/chat.js";
+import { chat, getMessages, listConversations } from "../controllers/chatController.js";
 
 const workspaceRouter = Router();
 
@@ -45,5 +47,14 @@ workspaceRouter.use("/:workspaceId/documents", requireMembership(), documentRout
 
 //--- Search Route
 workspaceRouter.post("/:workspaceId/search", requireMembership(), validate(SearchSchema), search);
+
+//--- Chat
+workspaceRouter.post("/:workspaceId/chat", requireMembership(), validate(ChatSchema), chat);
+workspaceRouter.get("/:workspaceId/conversations", requireMembership(), listConversations);
+workspaceRouter.get(
+  "/:workspaceId/conversations/:conversationId/messages",
+  requireMembership(),
+  getMessages,
+);
 
 export default workspaceRouter;
