@@ -9,6 +9,12 @@ const openai = new OpenAI({
 
 const BATCH_SIZE = 100;
 
+export async function embedText(text: string): Promise<number[]> {
+  const [vector] = await embedTexts([text]);
+  if (!vector) throw new Error("No embedding returned");
+  return vector;
+}
+
 export async function embedTexts(texts: string[]): Promise<number[][]> {
   const vectors: number[][] = [];
 
