@@ -17,6 +17,8 @@ import {
 } from "../controllers/workspaceController.js";
 import { requireMembership } from "../middleware/requireMembership.js";
 import documentRouter from "./documentRoute.js";
+import { SearchSchema } from "../schemas/search.js";
+import { search } from "../controllers/searchController.js";
 
 const workspaceRouter = Router();
 
@@ -40,5 +42,8 @@ workspaceRouter.delete("/:workspaceId", requireMembership("ADMIN"), deleteWorksp
 workspaceRouter.delete("/:workspaceId/members/:userId", requireMembership("ADMIN"), removeMember);
 //--- Document Route
 workspaceRouter.use("/:workspaceId/documents", requireMembership(), documentRouter);
+
+//--- Search Route
+workspaceRouter.post("/:workspaceId/search", requireMembership(), validate(SearchSchema), search);
 
 export default workspaceRouter;
