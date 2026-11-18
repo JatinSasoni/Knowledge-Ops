@@ -18,6 +18,7 @@ const envSchema = z.object({
   REDIS_URL: z.url(),
   OPENAI_API_KEY: z.string().min(1),
   EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+  CHAT_MODEL: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
