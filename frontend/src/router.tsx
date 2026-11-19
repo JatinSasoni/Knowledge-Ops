@@ -5,6 +5,7 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { ChatTab } from "./pages/workspace/ChatTab";
 import { DocumentsTab } from "./pages/workspace/DocumentsTab";
 import { MembersTab } from "./pages/workspace/MembersTab";
 import { SettingsTab } from "./pages/workspace/SettingsTab";
@@ -27,6 +28,8 @@ export const router = createBrowserRouter([
             element: <WorkspaceLayout />,
             children: [
               { index: true, element: <DocumentsTab /> },
+              { path: "chat", element: <ChatTab /> },
+              { path: "chat/:conversationId", element: <ChatTab /> },
               { path: "members", element: <MembersTab /> },
               { path: "settings", element: <SettingsTab /> },
             ],

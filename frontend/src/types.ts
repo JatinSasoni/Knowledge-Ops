@@ -53,3 +53,29 @@ export type Page<T> = {
   total: number;
   totalPages: number;
 };
+
+/* ---------- Chat ---------- */
+
+// One source passage the answer can point to with [n].
+export type Citation = {
+  n: number;
+  documentId: string;
+  documentTitle: string;
+  index: number; // passage number inside the document (0-based)
+  content: string;
+  similarity: number; // 0..1, how close the passage is to the question
+};
+
+export type ConversationSummary = {
+  id: string;
+  title: string;
+  updatedAt: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  role: "USER" | "ASSISTANT";
+  content: string;
+  citations: Citation[] | null; // only on assistant messages
+  createdAt: string;
+};
