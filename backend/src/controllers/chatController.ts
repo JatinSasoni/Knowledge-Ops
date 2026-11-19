@@ -2,14 +2,11 @@ import { asyncHandler } from "../util/asyncHandler.js";
 import { AppError } from "../util/AppError.js";
 import { prisma } from "../lib/prisma.js";
 import { openai } from "../lib/openai.js";
-import { searchPassages } from "../lib/retrieval.js";
-import { buildPrompt } from "../lib/chat.js";
+import { searchPassages, MIN_SIMILARITY } from "../lib/retrieval.js";
 import { openEventStream, sendEvent } from "../lib/sse.js";
 import { env } from "../config/env.js";
 import { conversationParams, type ChatInput } from "../schemas/chat.js";
-
-const MIN_SIMILARITY = 0.2; // below this, a passage is treated as unrelated (from your search tests)
-const NOT_FOUND = "I couldn't find anything about that in this workspace's documents.";
+import { buildPrompt, MAX_ANSWER_TOKENS, NOT_FOUND } from "../lib/chat.js";
 
 // POST /api/v1/workspaces/:workspaceId/chat
 export const chat = asyncHandler(async (req, res) => {
@@ -73,7 +70,7 @@ export const chat = asyncHandler(async (req, res) => {
           model: env.CHAT_MODEL,
           messages: buildPrompt(question, passages, history),
           stream: true,
-          max_completion_tokens: 800,
+          max_completion_tokens: MAX_ANSWER_TOKENS,
         },
         { signal: stop.signal },
       );
