@@ -10,7 +10,7 @@ export function AppLayout() {
   return (
     <div className="min-h-dvh">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-5 py-3 md:px-10">
+        <div className="mx-auto flex max-w-[1360px] items-center justify-between gap-4 px-5 py-3 md:px-10">
           <Link to="/workspaces" aria-label="Your workspaces" className="whitespace-nowrap">
             <Wordmark size="sm" />
           </Link>
@@ -22,7 +22,7 @@ export function AppLayout() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-[1200px] px-5 py-10 md:px-10 lg:py-14">
+      <main className="mx-auto max-w-[1360px] px-5 py-6 md:px-10 lg:py-8">
         <Outlet />
       </main>
     </div>

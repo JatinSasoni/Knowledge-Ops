@@ -1,0 +1,142 @@
+import { ApiError, http, refreshSession, session } from "../../lib/api";
+import type { ChatMessage, Citation, ConversationSummary } from "../../types";
+
+/* ---------- Normal requests: axios, like the rest of the app ---------- */
+
+export async function getConversations(workspaceId: string): Promise<ConversationSummary[]> {
+  const response = await http.get<{ conversations: ConversationSummary[] }>(
+    `/workspaces/${workspaceId}/conversations`,
+  );
+  return response.data.conversations;
+}
+
+export async function getMessages(
+  workspaceId: string,
+  conversationId: string,
+): Promise<ChatMessage[]> {
+  const response = await http.get<{ messages: ChatMessage[] }>(
+    `/workspaces/${workspaceId}/conversations/${conversationId}/messages`,
+  );
+  return response.data.messages;
+}
+
+/* ---------- Asking a question: a streamed answer ---------- */
+
+/*
+ * Why fetch and not axios here?
+ * In the browser, axios only hands you the response once it has fully arrived.
+ * fetch gives you `response.body`, a stream we can read piece by piece while the
+ * server is still writing, so the answer appears word by word.
+ *
+ * The server sends Server-Sent Events: blocks of text separated by a blank line.
+ *
+ *   event: token
+ *   data: {"text":"Hello"}
+ *
+ * Events, in order: conversation → citations → token (many) → done.
+ * If generation fails, an "error" event comes instead of more tokens.
+ */
+
+export type StreamHandlers = {
+  onConversation: (conversation: { id: string; title: string }) => void;
+  onCitations: (citations: Citation[]) => void;
+  onToken: (text: string) => void;
+};
+
+export async function streamChat(
+  workspaceId: string,
+  body: { question: string; conversationId?: string },
+  handlers: StreamHandlers,
+  signal: AbortSignal,
+): Promise<void> {
+  const response = await postChat(workspaceId, body, signal);
+
+  // Turn the raw bytes into text as they arrive.
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  let finished = false;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+
+    // A chunk can hold several events, or half of one. Handle every complete
+    // event (ends with a blank line) and keep the rest for the next chunk.
+    let end = buffer.indexOf("\n\n");
+    while (end !== -1) {
+      const event = parseEvent(buffer.slice(0, end));
+      buffer = buffer.slice(end + 2);
+
+      if (event.name === "conversation") handlers.onConversation(event.data);
+      if (event.name === "citations") handlers.onCitations(event.data);
+      if (event.name === "token") handlers.onToken(event.data.text);
+      if (event.name === "error") throw new ApiError(500, "GENERATION_FAILED", event.data.message);
+      if (event.name === "done") finished = true;
+
+      end = buffer.indexOf("\n\n");
+    }
+  }
+
+  // The connection closed before "done": the server crashed or the network dropped.
+  if (!finished) {
+    throw new ApiError(0, "NETWORK", "The answer was cut off. Please try again.");
+  }
+}
+
+// Sends the question. fetch doesn't go through our axios interceptors, so the
+// two things they do for us are done by hand: attach the token, and on a 401
+// refresh the session once and try again.
+async function postChat(
+  workspaceId: string,
+  body: { question: string; conversationId?: string },
+  signal: AbortSignal,
+): Promise<Response> {
+  const send = () =>
+    fetch(`/api/v1/workspaces/${workspaceId}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.get() ?? ""}`,
+      },
+      body: JSON.stringify(body),
+      credentials: "include",
+      signal,
+    });
+
+  try {
+    let response = await send();
+    if (response.status === 401) {
+      await refreshSession(); // throws if the session is really over
+      response = await send();
+    }
+    if (!response.ok) throw await errorFrom(response);
+    return response;
+  } catch (error) {
+    if (error instanceof ApiError || signal.aborted) throw error;
+    // fetch throws a plain TypeError when the server can't be reached.
+    throw new ApiError(0, "NETWORK", "Can't reach the server. Check your connection.");
+  }
+}
+
+// Before streaming starts, errors are normal JSON: { error: { code, message, details } }
+async function errorFrom(response: Response): Promise<ApiError> {
+  const body = await response.json().catch(() => null);
+  return new ApiError(
+    response.status,
+    body?.error?.code ?? "UNKNOWN",
+    body?.error?.message ?? "Something went wrong",
+    body?.error?.details,
+  );
+}
+
+// "event: token\ndata: {...}" → { name: "token", data: {...} }
+function parseEvent(block: string) {
+  let name = "message";
+  let data = "";
+  for (const line of block.split("\n")) {
+    if (line.startsWith("event:")) name = line.slice(6).trim();
+    if (line.startsWith("data:")) data += line.slice(5).trim();
+  }
+  return { name, data: data ? JSON.parse(data) : null };
+}
