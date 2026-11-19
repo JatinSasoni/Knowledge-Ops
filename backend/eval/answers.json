@@ -1,0 +1,31 @@
+[
+  {
+    "question": "Which project used Socket.IO?",
+    "facts": ["a real-time chat application built with Socket.IO"]
+  },
+  {
+    "question": "How were subscriptions handled in the job portal?",
+    "facts": ["Razorpay subscriptions"]
+  },
+  {
+    "question": "What was used for mock interviews?",
+    "facts": ["Vapi AI", "voice-based mock interviews"]
+  },
+  {
+    "question": "Where did Jatin do his internship?",
+    "facts": ["Helios Tech Labs", "Software Developer Intern"]
+  },
+  { "question": "How much did Redis caching reduce API latency?", "facts": ["up to 40%"] },
+  { "question": "Who is Harbor Ops built for?", "facts": ["yacht charter companies"] },
+  {
+    "question": "How does Harbor Ops prevent double bookings?",
+    "facts": ["checks yacht availability / a fleet calendar that blocks dates"]
+  },
+  { "question": "Which contract types does Harbor Ops support?", "facts": ["MYBA"] },
+  { "question": "Where do charter enquiries come from?", "facts": ["connected Gmail inboxes"] },
+
+  { "question": "How much does Harbor Ops cost per month?", "expectNotFound": true },
+  { "question": "What is Jatin's date of birth?", "expectNotFound": true },
+  { "question": "Where did Jatin do his master's degree?", "expectNotFound": true },
+  { "question": "What is the best pasta recipe?", "expectNotFound": true }
+]

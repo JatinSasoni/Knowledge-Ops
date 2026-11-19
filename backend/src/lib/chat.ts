@@ -1,6 +1,9 @@
 import type OpenAI from "openai";
 import type { RetrievedPassage } from "./retrieval.js";
 
+export const NOT_FOUND = "I couldn't find anything about that in this workspace's documents.";
+export const MAX_ANSWER_TOKENS = 800;
+
 const SYSTEM_PROMPT = `You answer questions for a team, using ONLY the numbered sources given to you.
 Rules:
 - Use only facts from the sources. Do not use outside knowledge.

@@ -1,0 +1,47 @@
+[
+  { "question": "Which project used Socket.IO?", "document": "Resume", "contains": "Socket.IO" },
+  {
+    "question": "How were subscriptions and payments handled in the job portal?",
+    "document": "Resume",
+    "contains": "Razorpay"
+  },
+  {
+    "question": "What voice AI was used for mock interviews?",
+    "document": "Resume",
+    "contains": "Vapi"
+  },
+  { "question": "Where did Jatin do his internship?", "document": "Resume", "contains": "Helios" },
+  {
+    "question": "How much did Redis caching reduce API latency?",
+    "document": "Resume",
+    "contains": "40%"
+  },
+  {
+    "question": "Who is Harbor Ops built for?",
+    "document": "Harbor Ops",
+    "contains": "yacht charter"
+  },
+  {
+    "question": "How does Harbor Ops prevent double bookings?",
+    "document": "Harbor Ops",
+    "contains": "double booking"
+  },
+  {
+    "question": "Which contract types are supported?",
+    "document": "Harbor Ops",
+    "contains": "MYBA"
+  },
+  {
+    "question": "Where do charter enquiries come from?",
+    "document": "Harbor Ops",
+    "contains": "Gmail"
+  },
+  {
+    "question": "What data can be imported from spreadsheets?",
+    "document": "Harbor Ops",
+    "contains": "brokers"
+  },
+  { "question": "What is the best pasta recipe?", "expectNone": true },
+  { "question": "Who won the football world cup in 2022?", "expectNone": true },
+  { "question": "How do I reset my car's oil service light?", "expectNone": true }
+]

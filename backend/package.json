@@ -17,7 +17,9 @@
     "postdb:migrate": "prisma generate",
     "db:studio": "prisma studio",
     "dev:worker": "tsx watch src/worker.ts",
-    "start:worker": "node dist/worker.js"
+    "start:worker": "node dist/worker.js",
+    "eval:retrieval": "tsx src/eval/retrievalEval.ts",
+    "eval:answers": "tsx src/eval/answerEval.ts"
   },
   "author": "",
   "license": "ISC",

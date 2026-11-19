@@ -1,6 +1,8 @@
 import { embedText } from "./embeddings.js";
 import { prisma } from "./prisma.js";
 
+export const MIN_SIMILARITY = 0.2;
+
 export type RetrievedPassage = {
   id: string;
   documentId: string;
