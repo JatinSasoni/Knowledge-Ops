@@ -69,7 +69,8 @@
 }
 
 /* Chat: a blinking caret at the end of an answer while it is being written. */
-.chat-streaming > :last-child::after {
+.chat-streaming > :last-child:not(ul, ol)::after,
+.chat-streaming > :is(ul, ol):last-child > li:last-child::after {
   content: "";
   display: inline-block;
   width: 0.5em;
@@ -151,7 +152,8 @@
     animation: none;
     background-color: var(--color-marker);
   }
-  .chat-streaming > :last-child::after,
+  .chat-streaming > :last-child:not(ul, ol)::after,
+  .chat-streaming > :is(ul, ol):last-child > li:last-child::after,
   .chat-dots span,
   .chat-enter {
     animation: none;

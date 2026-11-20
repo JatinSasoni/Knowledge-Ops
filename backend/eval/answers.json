@@ -12,7 +12,7 @@
     "facts": ["Vapi AI", "voice-based mock interviews"]
   },
   {
-    "question": "Where did Jatin do his internship?",
+    "question": "Where did Jatin do his internship, and in what role?",
     "facts": ["Helios Tech Labs", "Software Developer Intern"]
   },
   { "question": "How much did Redis caching reduce API latency?", "facts": ["up to 40%"] },
@@ -27,5 +27,37 @@
   { "question": "How much does Harbor Ops cost per month?", "expectNotFound": true },
   { "question": "What is Jatin's date of birth?", "expectNotFound": true },
   { "question": "Where did Jatin do his master's degree?", "expectNotFound": true },
-  { "question": "What is the best pasta recipe?", "expectNotFound": true }
+  { "question": "What is the best pasta recipe?", "expectNotFound": true },
+
+  {
+    "question": "What documents do we have?",
+    "facts": ["Harbor Ops — product page brief", "Jatin-Sasoni-Resume"],
+    "needsCitations": false,
+    "expectTools": ["list_documents"]
+  },
+  {
+    "question": "Which of those uses Redis?",
+    "history": [
+      { "role": "USER", "content": "What documents do we have?" },
+      {
+        "role": "ASSISTANT",
+        "content": "We have two documents: \"Harbor Ops — product page brief.pdf\" and \"Jatin-Sasoni-Resume (6).pdf\"."
+      }
+    ],
+    "facts": ["the resume (Jatin-Sasoni-Resume) mentions Redis"],
+    "expectTools": ["search_documents"]
+  },
+  {
+    "question": "Hi",
+    "needsCitations": false,
+    "expectTools": []
+  },
+  {
+    "question": "Compare Jatin's projects with Harbor Ops",
+    "facts": [
+      "Harbor Ops is a product for yacht charter companies",
+      "Jatin's projects include a job portal, an AI toolkit and a real-time chat app"
+    ],
+    "expectTools": ["search_documents"]
+  }
 ]
