@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && npm run build:widget && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:widget": "vite build -c vite.embed.config.ts",
+    "dev:widget": "vite build -c vite.embed.config.ts --watch"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.107.1",

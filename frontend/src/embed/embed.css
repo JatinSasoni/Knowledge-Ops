@@ -1,0 +1,88 @@
+/*
+ * Styles for the website widget (the chat inside the iframe).
+ * source(none) + @source: Tailwind scans only the widget's own files, so the widget
+ * ships with just the CSS it uses instead of the whole app's.
+ */
+@import "tailwindcss" source(none);
+@import "../theme.css";
+@source "./";
+@source "../features/chat/Answer.tsx";
+@source "../components/icons.tsx";
+
+@layer base {
+  html,
+  body,
+  #citely-widget {
+    height: 100%;
+    margin: 0;
+  }
+
+  html {
+    @apply bg-surface font-sans text-ink antialiased;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-pine;
+  }
+}
+
+/* A blinking caret at the end of an answer while it is being written. */
+.chat-streaming > :last-child:not(ul, ol)::after,
+.chat-streaming > :is(ul, ol):last-child > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  background: var(--color-pine);
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Three dots while the answer hasn't started yet. */
+.chat-dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-pine);
+  animation: dot 1.2s ease-in-out infinite;
+}
+.chat-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.chat-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-streaming > :last-child:not(ul, ol)::after,
+  .chat-streaming > :is(ul, ol):last-child > li:last-child::after,
+  .chat-dots span {
+    animation: none;
+  }
+}
