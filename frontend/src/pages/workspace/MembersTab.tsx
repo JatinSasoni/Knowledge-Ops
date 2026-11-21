@@ -1,12 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { Select, type SelectOption } from "../../components/Select";
 import { Button, ConfirmButton, FormError, Panel, RoleBadge } from "../../components/ui";
 import { useMe } from "../../features/auth/hooks";
 import { keys, useAddMember, useMembers, useRemoveMember } from "../../features/workspaces/hooks";
 import { ApiError, fieldError } from "../../lib/api";
 import type { Role } from "../../types";
 import { useWorkspaceContext } from "./context";
+
+const ROLE_OPTIONS: SelectOption<Role>[] = [
+  { value: "MEMBER", label: "Member", description: "Can read, upload and ask" },
+  { value: "ADMIN", label: "Admin", description: "Also manages people and settings" },
+];
 
 // Turn the backend's status codes into sentences that say what to do next.
 function addMemberError(error: unknown) {
@@ -96,7 +102,7 @@ export function MembersTab() {
         {isAdmin ? (
           <Panel className="bg-sand p-6">
             <h2 className="font-display text-[22px] font-bold">Add a person</h2>
-            <p className="mt-1 text-[15px] text-ink/75">They need a Knowledge Ops account first.</p>
+            <p className="mt-1 text-[15px] text-ink/75">They need a Citely account first.</p>
             <form onSubmit={onAdd} className="mt-4 flex flex-col gap-3" noValidate>
               <label htmlFor="member-email" className="text-sm font-medium">
                 Email
@@ -113,18 +119,7 @@ export function MembersTab() {
                 placeholder="teammate@company.com"
                 className="rounded-md border border-line bg-surface px-3 py-2.5 outline-none focus:border-pine"
               />
-              <label htmlFor="member-role" className="text-sm font-medium">
-                Role
-              </label>
-              <select
-                id="member-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-                className="rounded-md border border-line bg-surface px-3 py-2.5 outline-none focus:border-pine"
-              >
-                <option value="MEMBER">Member: read, upload and ask</option>
-                <option value="ADMIN">Admin: also manages people and settings</option>
-              </select>
+              <Select label="Role" value={role} options={ROLE_OPTIONS} onChange={setRole} />
               <FormError message={addMemberError(add.error)} />
               <Button type="submit" disabled={add.isPending || !email.trim()}>
                 {add.isPending ? "Adding…" : "Add to workspace"}

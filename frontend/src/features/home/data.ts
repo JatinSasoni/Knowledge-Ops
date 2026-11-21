@@ -16,7 +16,6 @@ export type DemoQuestion = {
   ask: string;
   answer: AnswerPart[];
   sources: Source[];
-  ticket?: { label: string; title: string };
 };
 
 const refundWindow: Source = {
@@ -97,11 +96,10 @@ export const demoQuestions: DemoQuestion[] = [
     ask: "What's the office Wi-Fi password?",
     answer: [
       {
-        text: "I couldn't find this in the Support workspace's documents, so I won't guess. I can file a ticket for IT instead.",
+        text: "I couldn't find this in the Support workspace's documents, so I won't guess. Try asking in the IT workspace, or check with your IT team.",
       },
     ],
     sources: [],
-    ticket: { label: "File a ticket for IT", title: "Office Wi-Fi password" },
   },
 ];
 
@@ -224,7 +222,7 @@ export const workspaces = {
 export type WorkspaceName = keyof typeof workspaces;
 
 export const comparison = {
-  columns: ["Knowledge Ops", "A shared drive", "Asking in the team chat"],
+  columns: ["Citely", "A shared drive", "Asking in the team chat"],
   rows: [
     [
       "Finds answers by meaning",
@@ -240,7 +238,7 @@ export const comparison = {
     ],
     [
       "Says when the answer isn't there",
-      "Yes, and files a ticket",
+      "Yes, it never guesses",
       "Shows no results",
       "Someone replies “not sure”",
     ],
@@ -269,11 +267,11 @@ export const faqs: Faq[] = [
   },
   {
     q: "What if the answer isn't in our documents?",
-    a: "It says so instead of guessing, and offers to file a ticket so a person can pick the question up.",
+    a: "It says so instead of guessing, so you know to ask a person or add the missing document.",
   },
   {
     q: "How does it find the right passage?",
-    a: "Each document is split into passages of about 500 tokens, and each passage is stored with a vector that captures its meaning. Your question is matched against those vectors, closest first.",
+    a: "Each document is split into short passages, and Citely understands what each one is about. Your question is matched by meaning, not exact words, and the closest passages are used for the answer.",
   },
   {
     q: "How soon can I ask about a new document?",
@@ -285,6 +283,6 @@ export const faqs: Faq[] = [
   },
   {
     q: "Where are the files kept?",
-    a: "The original file sits in object storage. Its text, passages and their vectors are stored in the workspace's database, so search never leaves your workspace's data.",
+    a: "In secure storage that belongs to your workspace. Searches only ever look inside the workspace you're in, so your files never show up for another team.",
   },
 ];

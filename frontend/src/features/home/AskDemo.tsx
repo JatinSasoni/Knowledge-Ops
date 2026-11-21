@@ -12,7 +12,6 @@ export function AskDemo() {
   const [questionId, setQuestionId] = useState(demoQuestions[0]!.id);
   const [shown, setShown] = useState(0);
   const [hoveredCite, setHoveredCite] = useState<number | null>(null);
-  const [ticketFiled, setTicketFiled] = useState(false);
   const reduced = useReducedMotion();
 
   const question = demoQuestions.find((q) => q.id === questionId) ?? demoQuestions[0]!;
@@ -38,7 +37,6 @@ export function AskDemo() {
     setQuestionId(id);
     setShown(0);
     setHoveredCite(null);
-    setTicketFiled(false);
   };
 
   const activeCite = hoveredCite ?? (done ? 1 : null);
@@ -69,7 +67,7 @@ export function AskDemo() {
         <p className="self-end rounded-lg bg-paper px-3 py-2 font-medium">{question.ask}</p>
 
         <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-semibold text-pine">Knowledge Ops</span>
+          <span className="text-[13px] font-semibold text-pine">Citely</span>
           <p className="min-h-[4.5em]">
             {question.answer.map((part, i) => {
               const partWords = words[i] ?? [];
@@ -102,23 +100,6 @@ export function AskDemo() {
             ) : null}
           </p>
         </div>
-
-        {question.ticket && done ? (
-          ticketFiled ? (
-            <p className="rounded-md bg-paper px-3 py-2">
-              Ticket filed for IT: <span className="font-semibold">{question.ticket.title}</span>,
-              priority Low.
-            </p>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setTicketFiled(true)}
-              className="self-start rounded-md bg-pine px-3 py-2 font-semibold text-paper transition-colors hover:bg-pine-dark active:translate-y-px"
-            >
-              {question.ticket.label}
-            </button>
-          )
-        ) : null}
 
         <div className="min-h-[7.5rem] rounded-md bg-paper px-3 py-3">
           {activeSource ? (

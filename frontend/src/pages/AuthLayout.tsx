@@ -3,21 +3,28 @@ import { Link, Navigate } from "react-router";
 import { FormError } from "../components/ui";
 import { useMe } from "../features/auth/hooks";
 
+/*
+ * The Citely logo (image). Two versions of the same file:
+ *   citely-logo.png       beige letters, for dark backgrounds (green, black)
+ *   citely-logo-dark.png  dark letters, for beige/light backgrounds
+ * The orange document icon is identical in both. Size it with a height class (h-7, h-9…);
+ * width/height attributes reserve the space before the image loads, so nothing jumps.
+ */
 export function Wordmark({
-  size = "lg",
-  className = "",
+  onDark = false,
+  className = "h-7",
 }: {
-  size?: "lg" | "sm" | "none";
+  onDark?: boolean;
   className?: string;
 }) {
-  const text = size === "lg" ? "text-5xl sm:text-6xl" : size === "sm" ? "text-xl" : "";
   return (
-    <span className={`isolate font-display font-extrabold tracking-tight ${text} ${className}`}>
-      <span className="relative px-[0.04em] before:absolute before:inset-x-0 before:bottom-[0.1em] before:-z-10 before:h-[0.36em] before:bg-marker">
-        Knowledge
-      </span>{" "}
-      Ops
-    </span>
+    <img
+      src={onDark ? "/citely-logo.png" : "/citely-logo-dark.png"}
+      alt="Citely"
+      width={315}
+      height={96}
+      className={`w-auto ${className}`}
+    />
   );
 }
 
@@ -45,8 +52,8 @@ export function AuthLayout({
         className={`flex flex-col px-5 py-6 md:px-10 ${asideSide === "left" ? "lg:order-last" : ""}`}
       >
         <header className="flex items-center justify-between gap-4">
-          <Link to="/" aria-label="Knowledge Ops home" className="whitespace-nowrap">
-            <Wordmark size="sm" />
+          <Link to="/" aria-label="Citely home" className="whitespace-nowrap">
+            <Wordmark />
           </Link>
           <Link to="/" className="text-[15px] text-muted transition-colors hover:text-pine">
             Back to home

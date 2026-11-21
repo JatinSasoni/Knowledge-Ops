@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { comparison, faqs } from "./data";
 import { delay, h2Big, PENDING_WORKSPACE_KEY, sectionY, wrap } from "./layout";
 import { useReducedMotion } from "./useReducedMotion";
+import { WaveDivider } from "./WaveDivider";
 
 /* ---------- How it works: call and response ---------- */
 
@@ -123,9 +124,7 @@ export function HowItWorks() {
                 data-ui
                 className="rounded-lg border border-line bg-surface px-4 py-4 text-[14px] leading-[1.55]"
               >
-                <span className="mb-1 block text-[13px] font-semibold text-pine">
-                  Knowledge Ops
-                </span>
+                <span className="mb-1 block text-[13px] font-semibold text-pine">Citely</span>
                 Not as a refund. After 30 days, the unused months of an annual plan become store
                 credit instead.
                 <span className="mx-0.5 inline-grid h-[18px] min-w-[18px] place-items-center rounded bg-marker px-1 align-[1px] text-[11px] font-semibold">
@@ -188,44 +187,45 @@ const stages = [
     status: "Uploaded",
     progress: 8,
     log: "2.4 MB received",
-    detail: "The file is stored and the API replies 202 Accepted straight away. Nobody waits.",
+    detail: "Your file is saved straight away. You can keep working while Citely prepares it.",
   },
   {
-    name: "Queued",
+    name: "Waiting",
     status: "Processing",
     progress: 20,
-    log: "Waiting in the ingest queue",
+    log: "Next in line",
     detail:
-      "A job waits in a Redis queue. If it fails, it retries up to 3 times, waiting longer each time.",
+      "It joins a short line of files being prepared. If anything goes wrong, Citely tries again on its own.",
   },
   {
-    name: "Read",
+    name: "Reading",
     status: "Processing",
     progress: 42,
     log: "Reading page 7 of 12",
-    detail: "A background worker pulls the text out of the PDF, Markdown or text file.",
+    detail: "Citely reads the text in your PDF, Markdown or text file.",
   },
   {
-    name: "Split",
+    name: "Organising",
     status: "Processing",
     progress: 62,
     log: "48 passages",
     detail:
-      "The text is cut into passages of about 500 tokens that overlap by 50, so no sentence loses its context.",
+      "The text is split into short passages, so every answer can point to the exact part it came from.",
   },
   {
-    name: "Embedded",
+    name: "Understanding",
     status: "Processing",
     progress: 84,
-    log: "Embedding passage 31 of 48",
-    detail: "Each passage becomes a vector of 1,536 numbers, stored in Postgres next to its text.",
+    log: "Indexing passage 31 of 48",
+    detail:
+      "Each passage is indexed by meaning, so a question finds it even when it uses different words.",
   },
   {
     name: "Ready",
     status: "Ready",
     progress: 100,
     log: "48 passages ready",
-    detail: "Searchable straight away, and only from inside this workspace.",
+    detail: "You can ask about it now, and only people in this workspace can see it.",
   },
 ] as const;
 
@@ -257,8 +257,8 @@ export function Pipeline() {
             style={delay(80)}
             className="max-w-[34ch] text-[20px] leading-[1.5] text-paper/85"
           >
-            Uploading returns at once. The slow reading and filing happens in a background worker,
-            so a 50-page PDF never slows anyone's search.
+            Upload it and move on. Citely prepares the file in the background, so even a 50-page PDF
+            never slows anyone down.
           </p>
 
           <div
@@ -339,27 +339,21 @@ const members = [
   { name: "Sam Lee", email: "sam@example.com", role: "Member", you: false },
 ] as const;
 
+// Forest green band: one workspace per team, with a sample members list.
 export function Teams() {
   return (
-    <section className={`bg-pine text-paper ${sectionY}`}>
-      <div className={`${wrap} grid items-center gap-12 lg:grid-cols-12 lg:gap-x-10`}>
+    <section className="relative bg-pine pt-32 pb-20 text-paper lg:pt-40 lg:pb-28">
+      <WaveDivider position="top" />
+      <div className={`${wrap} grid items-center gap-12 lg:grid-cols-12 lg:gap-x-12`}>
         <div className="flex flex-col gap-8 lg:col-span-6">
           <h2 data-reveal className={h2Big}>
             One workspace per team
           </h2>
-          <p
-            data-reveal
-            style={delay(80)}
-            className="max-w-[30ch] text-[20px] leading-[1.4] md:text-[26px]"
-          >
+          <p className="max-w-[34ch] text-[19px] leading-[1.45] text-paper/90 md:text-[22px]">
             Support's documents answer Support's questions. Finance never sees them, and neither
             does anyone you haven't added.
           </p>
-          <ul
-            data-reveal
-            style={delay(160)}
-            className="flex flex-col gap-3 text-[18px] leading-[1.5] text-paper/90"
-          >
+          <ul className="flex flex-col gap-3 border-t border-paper/15 pt-6 text-[17px] leading-[1.5] text-paper/85">
             <li>
               <strong className="text-paper">Admins</strong> add and remove people, and rename or
               delete the workspace.
@@ -374,8 +368,11 @@ export function Teams() {
           </ul>
         </div>
 
-        <div data-reveal style={delay(120)} className="lg:col-span-6">
-          <div data-ui className="overflow-hidden rounded-lg bg-surface text-[14px] text-ink">
+        <div className="lg:col-span-6">
+          <div
+            data-ui
+            className="overflow-hidden rounded-xl bg-surface text-[14px] text-ink shadow-[0_40px_80px_-40px_rgba(0,0,0,0.55)] ring-1 ring-paper/10"
+          >
             <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
               <span className="flex items-center gap-2">
                 <span className="grid size-6 place-items-center rounded bg-pine text-[12px] font-semibold text-paper">
@@ -446,7 +443,7 @@ export function Comparison() {
         style={delay(80)}
         className="hidden lg:block"
         role="table"
-        aria-label="Knowledge Ops compared with a shared drive and team chat"
+        aria-label="Citely compared with a shared drive and team chat"
       >
         <div role="row" className="grid grid-cols-[5fr_repeat(3,minmax(0,2.33fr))] items-end">
           <span role="columnheader">
@@ -726,14 +723,21 @@ export function Footer() {
             href="https://github.com/JatinSasoni/Knowledge-Ops"
             className="text-[24px] font-semibold leading-[1.2] underline-offset-4 hover:text-pine hover:underline"
           >
-            Knowledge-Ops on GitHub
+            Citely on GitHub
           </a>
         </div>
 
         <div className="grid min-h-[160px] place-items-center bg-ink px-6 py-10 text-paper lg:col-span-8 lg:min-h-[320px]">
-          <span className="font-display text-[13vw] font-extrabold leading-none tracking-[-0.04em] lg:text-[8vw]">
-            <span className="bg-marker px-[0.06em] text-ink">Knowledge</span> Ops
-          </span>
+          {/* Same image logo as the nav, in a larger file so it stays sharp at this size.
+              lazy: the footer is far down the page, so it loads only when it's near. */}
+          <img
+            src="/citely-logo-lg.png"
+            alt="Citely"
+            width={985}
+            height={300}
+            loading="lazy"
+            className="h-auto w-[70vw] max-w-[620px] lg:w-[42vw]"
+          />
         </div>
         <Link
           to="/register"

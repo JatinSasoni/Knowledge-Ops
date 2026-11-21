@@ -1,4 +1,4 @@
-# Knowledge Ops: command cheat sheet
+# Citely: command cheat sheet
 
 Every command you need to run, check and debug the project, with what it does.
 Run commands from the repo root (`New_PJ/`) unless a line says `cd backend` or `cd frontend`.

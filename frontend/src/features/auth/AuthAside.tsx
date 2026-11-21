@@ -31,7 +31,7 @@ export function SignInAside() {
             Do we refund annual plans mid-term?
           </p>
           <div>
-            <span className="mb-1 block text-[13px] font-semibold text-pine">Knowledge Ops</span>
+            <span className="mb-1 block text-[13px] font-semibold text-pine">Citely</span>
             Yes, pro rata for the unused full months, but not for the current month.
             <span className="mx-0.5 inline-grid h-[18px] min-w-[18px] place-items-center rounded bg-marker px-1 align-[1px] text-[11px] font-semibold">
               1
