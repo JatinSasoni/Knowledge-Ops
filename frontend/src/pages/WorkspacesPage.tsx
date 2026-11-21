@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
-import { Button, Field, FormError, Panel, RoleBadge } from "../components/ui";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { Dialog } from "../components/Dialog";
+import { ArrowRightIcon, GridIcon, PlusIcon } from "../components/icons";
+import { Button, Field, FormError, RoleBadge } from "../components/ui";
 import { PENDING_WORKSPACE_KEY } from "../features/home/layout";
 import { useCreateWorkspace, useWorkspaces } from "../features/workspaces/hooks";
 import { fieldError } from "../lib/api";
 import { formatDate } from "../lib/format";
+import { Avatar } from "./shell/Sidebar";
 
 function takePendingName() {
   try {
@@ -16,13 +19,106 @@ function takePendingName() {
 
 export function WorkspacesPage() {
   const workspaces = useWorkspaces();
+  const list = workspaces.data ?? [];
+
+  /*
+   * The "create" dialog is open when:
+   * - the URL has ?new=1 (the sidebar's "New workspace" link), or
+   * - a name typed on the home page is waiting ("Name your first workspace…"), or
+   * - the "New workspace" button here was clicked.
+   */
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [pendingName] = useState(takePendingName);
+  const [open, setOpen] = useState(pendingName !== "");
+  const dialogOpen = open || searchParams.has("new");
+
+  function openDialog() {
+    setOpen(true);
+  }
+  function closeDialog() {
+    setOpen(false);
+    if (searchParams.has("new")) setSearchParams({}, { replace: true });
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+        <div>
+          <h1 className="font-display text-[clamp(26px,3vw,34px)] leading-tight font-extrabold tracking-tight">
+            Workspaces
+          </h1>
+          <p className="mt-2 max-w-2xl text-[15px] text-ink/70">
+            Each workspace keeps one team's documents, chats and members separate from every other.
+          </p>
+        </div>
+        <Button onClick={openDialog} className="flex items-center gap-2">
+          <PlusIcon />
+          New workspace
+        </Button>
+      </header>
+
+      {workspaces.isPending ? (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Loading workspaces">
+          {[1, 2, 3].map((n) => (
+            <li key={n} className="h-44 animate-pulse rounded-xl bg-sand/70" />
+          ))}
+        </ul>
+      ) : workspaces.isError ? (
+        <FormError message={`Couldn't load your workspaces: ${workspaces.error.message}`} />
+      ) : list.length === 0 ? (
+        <EmptyState onCreate={openDialog} />
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {list.map((workspace) => (
+            <li key={workspace.id}>
+              <Link
+                to={`/workspaces/${workspace.id}`}
+                className="group flex h-full flex-col rounded-xl border border-line bg-surface p-5 transition hover:-translate-y-0.5 hover:border-pine/40 hover:shadow-[0_16px_40px_-24px_rgba(18,22,18,0.45)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Avatar name={workspace.name} />
+                  <RoleBadge role={workspace.role} />
+                </div>
+                <p className="mt-4 truncate text-[17px] font-semibold">{workspace.name}</p>
+                <p className="mt-0.5 text-[13px] text-muted">
+                  Created {formatDate(workspace.createdAt)}
+                </p>
+                <span className="mt-auto flex items-center gap-1.5 border-t border-line pt-4 text-[13px] font-semibold text-pine">
+                  Open workspace
+                  <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        title="Create a workspace"
+        description="You'll be its admin and can add people next."
+      >
+        {/* Mounted only while open, so it starts fresh each time. */}
+        {dialogOpen && <CreateWorkspaceForm initialName={pendingName} onCancel={closeDialog} />}
+      </Dialog>
+    </div>
+  );
+}
+
+function CreateWorkspaceForm({
+  initialName,
+  onCancel,
+}: {
+  initialName: string;
+  onCancel: () => void;
+}) {
   const create = useCreateWorkspace();
   const navigate = useNavigate();
-  // A name typed on the home page ("Name your first workspace ...") is waiting here.
-  const [name, setName] = useState(takePendingName);
+  const [name, setName] = useState(initialName);
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
     create.mutate(name.trim(), {
       onSuccess: (workspace) => {
         try {
@@ -35,91 +131,51 @@ export function WorkspacesPage() {
     });
   };
 
-  const list = workspaces.data ?? [];
-
   return (
-    <div className="grid gap-10 lg:grid-cols-12 lg:gap-x-10">
-      <div className="flex flex-col gap-6 lg:col-span-7">
-        <div className="flex flex-col gap-2">
-          <h1 className="font-display text-[44px] font-extrabold leading-none tracking-[-0.035em]">
-            Your workspaces
-          </h1>
-          <p className="text-[17px] text-ink/75">
-            Each workspace keeps one team's documents and members separate from every other.
-          </p>
-        </div>
-
-        {workspaces.isPending ? (
-          <p className="text-muted">Loading your workspaces…</p>
-        ) : workspaces.isError ? (
-          <FormError message={`Couldn't load your workspaces: ${workspaces.error.message}`} />
-        ) : list.length === 0 ? (
-          <Panel className="px-6 py-8">
-            <p className="font-display text-[22px] font-bold">No workspaces yet</p>
-            <p className="mt-1 text-muted">
-              Create one for your team, or ask a workspace admin to add your email.
-            </p>
-          </Panel>
-        ) : (
-          <Panel className="overflow-hidden">
-            <ul>
-              {list.map((w, i) => (
-                <li key={w.id} className={i > 0 ? "border-t border-line" : ""}>
-                  <Link
-                    to={`/workspaces/${w.id}`}
-                    className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-paper/60"
-                  >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-md bg-pine font-display text-[18px] font-bold text-paper">
-                      {w.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="flex min-w-0 flex-col">
-                      <span className="truncate text-[17px] font-semibold group-hover:text-pine">
-                        {w.name}
-                      </span>
-                      <span className="text-sm text-muted">Created {formatDate(w.createdAt)}</span>
-                    </span>
-                    <span className="ml-auto">
-                      <RoleBadge role={w.role} />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        )}
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+      <Field
+        label="Workspace name"
+        name="name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Support team"
+        maxLength={60}
+        required
+        autoFocus
+        error={fieldError(create.error, "name")}
+        hint="2 to 60 characters."
+      />
+      <FormError
+        message={
+          create.isError && !fieldError(create.error, "name") ? create.error.message : undefined
+        }
+      />
+      <div className="mt-1 flex justify-end gap-2">
+        <Button type="button" variant="quiet" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={create.isPending || name.trim().length < 2}>
+          {create.isPending ? "Creating…" : "Create workspace"}
+        </Button>
       </div>
+    </form>
+  );
+}
 
-      <aside className="lg:col-span-5">
-        <Panel className="bg-sand p-6">
-          <h2 className="font-display text-[24px] font-bold">Create a workspace</h2>
-          <p className="mt-1 text-[15px] text-ink/75">
-            You'll be its admin and can add people next.
-          </p>
-          <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4" noValidate>
-            <Field
-              label="Workspace name"
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Support team"
-              maxLength={60}
-              required
-              error={fieldError(create.error, "name")}
-              hint="2 to 60 characters."
-            />
-            <FormError
-              message={
-                create.isError && !fieldError(create.error, "name")
-                  ? create.error.message
-                  : undefined
-              }
-            />
-            <Button type="submit" disabled={create.isPending || name.trim().length < 2}>
-              {create.isPending ? "Creating…" : "Create workspace"}
-            </Button>
-          </form>
-        </Panel>
-      </aside>
+function EmptyState({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-line px-6 py-16 text-center">
+      <span className="flex size-12 items-center justify-center rounded-xl bg-pine text-paper">
+        <GridIcon className="size-6" />
+      </span>
+      <h2 className="mt-5 font-display text-2xl font-bold">No workspaces yet</h2>
+      <p className="mt-2 max-w-sm text-[15px] text-ink/70">
+        Create one for your team, or ask a workspace admin to add your email.
+      </p>
+      <Button onClick={onCreate} className="mt-6 flex items-center gap-2">
+        <PlusIcon />
+        Create your first workspace
+      </Button>
     </div>
   );
 }

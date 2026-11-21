@@ -105,8 +105,9 @@ export function RetrievalDemo() {
           <Segmented
             value={chunkSize}
             options={[300, 500, 800] as const}
+            names={{ 300: "Short", 500: "Medium", 800: "Long" }}
             onChange={setChunkSize}
-            label="Passage length in tokens"
+            label="Passage length"
           />
         </Row>
         <Row label={`Minimum match ${minScore.toFixed(2)}`}>
@@ -134,7 +135,7 @@ export function RetrievalDemo() {
           <Toggle checked={showScores} onChange={setShowScores} label="Show match scores" />
         </Row>
         <p className="mt-auto pt-6 text-[13px] text-muted">
-          Passage length is measured in tokens, roughly three quarters of a word each.
+          Shorter passages give sharper answers; longer ones keep more context around them.
         </p>
       </div>
     </div>

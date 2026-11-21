@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { FormError } from "../../components/ui";
 import { Answer, Sources } from "../../features/chat/Answer";
@@ -8,7 +8,7 @@ import { useAsk, useConversations, useMessages } from "../../features/chat/hooks
 import { AssistantMark, CheckIcon, CopyIcon, ListIcon, PlusIcon } from "../../components/icons";
 import { SourceDrawer } from "../../features/chat/SourceDrawer";
 import { ApiError } from "../../lib/api";
-import type { Citation } from "../../types";
+import type { ChatMessage, Citation } from "../../types";
 import { useWorkspaceContext } from "./context";
 
 // URL: /workspaces/:id/chat (new chat) or /workspaces/:id/chat/:conversationId
@@ -23,9 +23,9 @@ export function ChatTab() {
     : "New chat";
 
   return (
-    // One card: chats on the left, the conversation on the right. It has a fixed
-    // height and its own scrolling, so the question box is always visible.
-    <div className="relative flex h-[calc(100dvh-9rem)] min-h-[520px] lg:h-[calc(100dvh-8rem)] overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-36px_rgba(18,22,18,0.45)]">
+    // Fills the whole area next to the app sidebar: chats on the left, the conversation
+    // on the right. Each column scrolls on its own, so the question box is always visible.
+    <div className="relative flex h-full overflow-hidden bg-surface">
       <ConversationList
         workspaceId={workspace.id}
         conversations={conversations.data ?? []}
@@ -144,25 +144,9 @@ function ChatThread({
           {isEmpty && <EmptyState hasDocuments={hasDocuments} onPick={send} />}
 
           <ol className="flex flex-col gap-8">
-            {saved.map((message) =>
-              message.role === "USER" ? (
-                <UserMessage key={message.id} text={message.content} />
-              ) : (
-                <AssistantMessage key={message.id}>
-                  <Answer
-                    content={message.content}
-                    citations={message.citations ?? []}
-                    onCite={setOpenSource}
-                  />
-                  <Sources
-                    content={message.content}
-                    citations={message.citations ?? []}
-                    onCite={setOpenSource}
-                  />
-                  <CopyButton text={message.content} />
-                </AssistantMessage>
-              ),
-            )}
+            {saved.map((message) => (
+              <SavedMessage key={message.id} message={message} onCite={setOpenSource} />
+            ))}
 
             {turn && (
               <>
@@ -183,7 +167,7 @@ function ChatThread({
                       />
                     </>
                   ) : isAnswering ? (
-                    <Thinking passages={turn.citations.length} />
+                    <Thinking steps={turn.steps} />
                   ) : null}
                 </AssistantMessage>
               </>
@@ -218,6 +202,32 @@ function ChatThread({
 
 /* ---------- Pieces ---------- */
 
+/*
+ * One stored message. Wrapped in memo() because the thread re-renders about 40 times a
+ * second while an answer is typing (the typewriter updates state every 25 ms). Without
+ * memo, every earlier answer would re-parse its Markdown on each of those renders.
+ * With memo, React skips a message whose props haven't changed: `message` is the same
+ * object from the query cache, and `onCite` is a state setter, which never changes.
+ */
+const SavedMessage = memo(function SavedMessage({
+  message,
+  onCite,
+}: {
+  message: ChatMessage;
+  onCite: (citation: Citation) => void;
+}) {
+  if (message.role === "USER") return <UserMessage text={message.content} />;
+
+  const citations = message.citations ?? [];
+  return (
+    <AssistantMessage>
+      <Answer content={message.content} citations={citations} onCite={onCite} />
+      <Sources content={message.content} citations={citations} onCite={onCite} />
+      <CopyButton text={message.content} />
+    </AssistantMessage>
+  );
+});
+
 function UserMessage({ text }: { text: string }) {
   return (
     <li className="chat-enter flex justify-end">
@@ -239,16 +249,50 @@ function AssistantMessage({ children, live = false }: { children: ReactNode; liv
   );
 }
 
-function Thinking({ passages }: { passages: number }) {
+/*
+ * Shown until the answer starts. Each tool the model uses becomes a step:
+ * finished steps get a check, and the latest one spins (the tool is running, or the
+ * model is reading its results). Before any tool runs: "Thinking…". Once the answer
+ * starts streaming, the steps make way for it.
+ */
+function Thinking({ steps }: { steps: string[] }) {
+  if (steps.length === 0) {
+    return (
+      <div className="flex items-center gap-3 pt-1.5 text-sm text-muted">
+        <span className="chat-dots flex gap-1" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+        Thinking…
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-3 pt-1.5 text-sm text-muted">
-      <span className="chat-dots flex gap-1" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </span>
-      {passages > 0 ? `Reading ${passages} passages…` : "Searching your documents…"}
-    </div>
+    <ol className="flex flex-col gap-2 pt-1.5" aria-label="What the assistant is doing">
+      {steps.map((step, i) => {
+        const current = i === steps.length - 1;
+        return (
+          <li
+            key={i}
+            className={`chat-enter flex items-center gap-2.5 text-sm ${current ? "text-ink" : "text-muted"}`}
+          >
+            {current ? (
+              <span
+                aria-hidden="true"
+                className="size-4 shrink-0 animate-spin rounded-full motion-reduce:animate-none border-2 border-pine/25 border-t-pine"
+              />
+            ) : (
+              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-pine/12 text-pine">
+                <CheckIcon className="size-3" />
+              </span>
+            )}
+            <span className="truncate">{step}</span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

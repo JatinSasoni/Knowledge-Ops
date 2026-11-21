@@ -33,12 +33,15 @@ export async function getMessages(
  *   event: token
  *   data: {"text":"Hello"}
  *
- * Events, in order: conversation → citations → token (many) → done.
+ * Events, in order: conversation → (status, citations)* → token (many) → done.
+ * "status" says which tool the model is using (e.g. Searching for "Redis"); it can
+ * come several times, and "citations" is re-sent each time the source list grows.
  * If generation fails, an "error" event comes instead of more tokens.
  */
 
 export type StreamHandlers = {
   onConversation: (conversation: { id: string; title: string }) => void;
+  onStatus: (label: string) => void;
   onCitations: (citations: Citation[]) => void;
   onToken: (text: string) => void;
 };
@@ -69,6 +72,7 @@ export async function streamChat(
       buffer = buffer.slice(end + 2);
 
       if (event.name === "conversation") handlers.onConversation(event.data);
+      if (event.name === "status") handlers.onStatus(event.data.label);
       if (event.name === "citations") handlers.onCitations(event.data);
       if (event.name === "token") handlers.onToken(event.data.text);
       if (event.name === "error") throw new ApiError(500, "GENERATION_FAILED", event.data.message);

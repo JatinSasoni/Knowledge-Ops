@@ -26,6 +26,23 @@
     @apply bg-marker text-ink;
   }
 
+  /* Tailwind v4 resets buttons to the default arrow cursor. Anything clickable shows
+     the hand; disabled controls show "not allowed". */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="option"],
+  [role="menuitem"],
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-pine;
   }

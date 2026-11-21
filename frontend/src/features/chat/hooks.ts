@@ -38,13 +38,14 @@ export type PendingTurn = {
   question: string;
   answer: string;
   citations: Citation[];
+  steps: string[]; // what the model did so far, e.g. ["Listing documents", "Searching for \"Redis\""]
 };
 
 /*
  * Asking a question
  * -----------------
  * 1. Show the question right away, with an empty answer.
- * 2. Stream: citations arrive first, then the answer grows token by token.
+ * 2. Stream: tool steps and citations arrive first, then the answer grows token by token.
  * 3. When it ends (finished or stopped), reload the saved messages from the
  *    server and drop the pending turn, so the screen shows exactly what was stored.
  * 4. If this was a new chat, tell the page its id so it can move to its URL.
@@ -76,7 +77,7 @@ export function useAsk(
     mutationFn: async (question: string) => {
       const stop = new AbortController();
       stopController.current = stop;
-      setTurn({ question, answer: "", citations: [] });
+      setTurn({ question, answer: "", citations: [], steps: [] });
 
       // Tokens go to the typewriter, which puts them on screen at a reading pace.
       const typewriter = createTypewriter((answer) =>
@@ -93,6 +94,9 @@ export function useAsk(
           {
             onConversation: (conversation) => {
               id = conversation.id;
+            },
+            onStatus: (label) => {
+              setTurn((current) => current && { ...current, steps: [...current.steps, label] });
             },
             onCitations: (citations) => {
               setTurn((current) => current && { ...current, citations });

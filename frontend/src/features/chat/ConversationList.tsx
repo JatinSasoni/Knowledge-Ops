@@ -54,7 +54,7 @@ export function ConversationList({
   return (
     <aside
       aria-label="Conversations"
-      className={`${open ? "flex" : "hidden"} absolute inset-0 z-20 w-full flex-col border-r border-line bg-sand/95 backdrop-blur lg:static lg:flex lg:w-64 lg:shrink-0 lg:bg-sand/40`}
+      className={`${open ? "flex" : "hidden"} absolute inset-0 z-20 w-full flex-col border-r border-line bg-sand/95 backdrop-blur lg:static lg:flex lg:w-64 lg:shrink-0 lg:bg-paper`}
     >
       <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-3">
         <p className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">Chats</p>
