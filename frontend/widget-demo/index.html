@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme Help Center (widget demo)</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #f4f6fb;
+        color: #1d2433;
+      }
+      header {
+        background: #2b59c3;
+        color: white;
+        padding: 20px 32px;
+        font-weight: 700;
+        font-size: 20px;
+      }
+      main {
+        max-width: 720px;
+        margin: 40px auto;
+        padding: 0 24px;
+        line-height: 1.6;
+      }
+      code {
+        background: #e6e9f2;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      A pretend customer website, to try the widget locally.
+      Serve this folder on port 5500 (an allowed website on the test key):
+        npx http-server widget-demo -p 5500 -c-1
+      then open http://localhost:5500
+    -->
+    <header>Acme Help Center</header>
+    <main>
+      <h1>Welcome to Acme support</h1>
+      <p>
+        This page stands in for a customer's website. Its styles are deliberately different from
+        Citely's, to show that the widget isn't affected by the site's CSS.
+      </p>
+      <p>Click the green bubble in the bottom-right corner to ask a question.</p>
+    </main>
+
+    <!-- The snippet from Settings → Website widget. Replace the key with yours. -->
+    <script
+      src="http://localhost:5173/widget.js"
+      data-key="pk_YhNZq5Asr-TftVSv5OOURJM2hG-z2_LM"
+      async
+    ></script>
+  </body>
+</html>

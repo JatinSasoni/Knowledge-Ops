@@ -6,6 +6,7 @@ import {
   useDeleteWorkspace,
   useRenameWorkspace,
 } from "../../features/workspaces/hooks";
+import { WidgetSettings } from "../../features/widget/WidgetSettings";
 import { VisibilityPicker } from "../../features/workspaces/Visibility";
 import { fieldError } from "../../lib/api";
 import type { Visibility } from "../../types";
@@ -133,6 +134,8 @@ export function SettingsTab() {
       </Panel>
 
       <VisibilitySettings />
+
+      <WidgetSettings workspace={workspace} />
 
       <Panel className="border border-danger/30 p-6">
         <h2 className="font-display text-[22px] font-bold text-danger">Delete this workspace</h2>

@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Built widget app (npm run build:widget writes it here)
+public/widget/

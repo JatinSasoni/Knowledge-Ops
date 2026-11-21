@@ -83,3 +83,16 @@ export type ChatMessage = {
   citations: Citation[] | null; // only on assistant messages
   createdAt: string;
 };
+
+/* ---------- Widget ---------- */
+
+// A public key for the website widget of a PUBLIC workspace.
+export type WidgetKey = {
+  id: string;
+  name: string;
+  key: string; // "pk_…": public, it goes into the website's HTML
+  allowedOrigins: string[]; // websites allowed to show the widget
+  revokedAt: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+};

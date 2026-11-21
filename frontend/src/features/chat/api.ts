@@ -1,4 +1,5 @@
 import { ApiError, http, refreshSession, session } from "../../lib/api";
+import { readEventStream } from "../../lib/eventStream";
 import type { ChatMessage, Citation, ConversationSummary } from "../../types";
 
 /* ---------- Normal requests: axios, like the rest of the app ---------- */
@@ -53,34 +54,17 @@ export async function streamChat(
   signal: AbortSignal,
 ): Promise<void> {
   const response = await postChat(workspaceId, body, signal);
-
-  // Turn the raw bytes into text as they arrive.
-  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
   let finished = false;
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += value;
-
-    // A chunk can hold several events, or half of one. Handle every complete
-    // event (ends with a blank line) and keep the rest for the next chunk.
-    let end = buffer.indexOf("\n\n");
-    while (end !== -1) {
-      const event = parseEvent(buffer.slice(0, end));
-      buffer = buffer.slice(end + 2);
-
-      if (event.name === "conversation") handlers.onConversation(event.data);
-      if (event.name === "status") handlers.onStatus(event.data.label);
-      if (event.name === "citations") handlers.onCitations(event.data);
-      if (event.name === "token") handlers.onToken(event.data.text);
-      if (event.name === "error") throw new ApiError(500, "GENERATION_FAILED", event.data.message);
-      if (event.name === "done") finished = true;
-
-      end = buffer.indexOf("\n\n");
-    }
-  }
+  // The buffering and splitting into events lives in lib/eventStream (shared with the widget).
+  await readEventStream(response, (event) => {
+    if (event.name === "conversation") handlers.onConversation(event.data);
+    if (event.name === "status") handlers.onStatus(event.data.label);
+    if (event.name === "citations") handlers.onCitations(event.data);
+    if (event.name === "token") handlers.onToken(event.data.text);
+    if (event.name === "error") throw new ApiError(500, "GENERATION_FAILED", event.data.message);
+    if (event.name === "done") finished = true;
+  });
 
   // The connection closed before "done": the server crashed or the network dropped.
   if (!finished) {
@@ -132,15 +116,4 @@ async function errorFrom(response: Response): Promise<ApiError> {
     body?.error?.message ?? "Something went wrong",
     body?.error?.details,
   );
-}
-
-// "event: token\ndata: {...}" → { name: "token", data: {...} }
-function parseEvent(block: string) {
-  let name = "message";
-  let data = "";
-  for (const line of block.split("\n")) {
-    if (line.startsWith("event:")) name = line.slice(6).trim();
-    if (line.startsWith("data:")) data += line.slice(5).trim();
-  }
-  return { name, data: data ? JSON.parse(data) : null };
 }

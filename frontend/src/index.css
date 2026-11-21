@@ -1,21 +1,6 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-
-  /* Forest green, black and beige */
-  --color-paper: #ede6d6;
-  --color-sand: #e0d6c1;
-  --color-surface: #fbf8f1;
-  --color-ink: #121612;
-  --color-muted: #5b5a4f;
-  --color-line: #d6ccb8;
-  --color-pine: #1f4d3a;
-  --color-pine-dark: #163a2b;
-  --color-marker: #f2d04b;
-  --color-danger: #a8321e;
-}
+@import "./theme.css";
 
 @layer base {
   html {
