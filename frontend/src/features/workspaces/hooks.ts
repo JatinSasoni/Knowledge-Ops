@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Role } from "../../types";
+import type { Role, Visibility } from "../../types";
 import * as workspacesApi from "./api";
 
 /*
@@ -42,7 +42,18 @@ export function useCreateWorkspace() {
 export function useRenameWorkspace(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => workspacesApi.renameWorkspace(id, name),
+    mutationFn: (name: string) => workspacesApi.updateWorkspace(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.workspace(id) });
+      queryClient.invalidateQueries({ queryKey: keys.workspaces });
+    },
+  });
+}
+
+export function useChangeVisibility(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (visibility: Visibility) => workspacesApi.updateWorkspace(id, { visibility }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.workspace(id) });
       queryClient.invalidateQueries({ queryKey: keys.workspaces });

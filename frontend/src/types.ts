@@ -13,10 +13,14 @@ export type AuthResponse = {
 
 export type Role = "ADMIN" | "MEMBER";
 
+// PRIVATE: only members can ask. PUBLIC: members + website visitors (through the widget).
+export type Visibility = "PRIVATE" | "PUBLIC";
+
 export type Workspace = {
   id: string;
   name: string;
   slug: string;
+  visibility: Visibility;
   createdAt: string;
   role: Role; // the signed-in user's role in this workspace
 };
