@@ -6,6 +6,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import workspaceRouter from "./routes/workspaceRoute.js";
 import cookieParser from "cookie-parser";
+import widgetRouter from "./routes/widgetRoute.js";
 export const app = express();
 
 app.set("trust proxy", 1);
@@ -21,7 +22,7 @@ app.get("/health", async (_req: Request, res: Response) => {
 //routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/workspaces", requireAuth, workspaceRouter);
-
+app.use("/api/v1/widget", widgetRouter);
 // 404 for unknown routes
 app.use(notFoundHandler);
 // error handler
