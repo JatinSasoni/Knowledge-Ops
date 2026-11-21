@@ -28,6 +28,12 @@ enum MessageRole {
   ASSISTANT
 }
 
+enum WorkspaceVisibility {
+  PRIVATE  
+  PUBLIC  
+}
+
+
 model User{
   id  String @id @default(uuid())
   email String @unique
@@ -56,6 +62,7 @@ model Workspace{
   id String @id @default(uuid())
   name String
   slug String @unique
+  visibility WorkspaceVisibility @default(PRIVATE)
   members Member[]
   documents Document[]
   chunk DocumentChunk[]

@@ -1,5 +1,5 @@
 import { http } from "../../lib/api";
-import type { Member, Role, Workspace, WorkspaceDetail } from "../../types";
+import type { Member, Role, Visibility, Workspace, WorkspaceDetail } from "../../types";
 
 /* ---------- Workspaces ---------- */
 
@@ -13,13 +13,20 @@ export async function getWorkspace(id: string): Promise<WorkspaceDetail> {
   return response.data.workspace;
 }
 
-export async function createWorkspace(name: string): Promise<Workspace> {
-  const response = await http.post<{ workspace: Workspace }>("/workspaces", { name });
+export async function createWorkspace(input: {
+  name: string;
+  visibility: Visibility;
+}): Promise<Workspace> {
+  const response = await http.post<{ workspace: Workspace }>("/workspaces", input);
   return response.data.workspace;
 }
 
-export async function renameWorkspace(id: string, name: string): Promise<Workspace> {
-  const response = await http.patch<{ workspace: Workspace }>(`/workspaces/${id}`, { name });
+// Rename and/or change visibility: send only the fields that change.
+export async function updateWorkspace(
+  id: string,
+  changes: { name?: string; visibility?: Visibility },
+): Promise<Workspace> {
+  const response = await http.patch<{ workspace: Workspace }>(`/workspaces/${id}`, changes);
   return response.data.workspace;
 }
 

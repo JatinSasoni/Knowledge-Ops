@@ -7,6 +7,8 @@ import { PENDING_WORKSPACE_KEY } from "../features/home/layout";
 import { useCreateWorkspace, useWorkspaces } from "../features/workspaces/hooks";
 import { fieldError } from "../lib/api";
 import { formatDate } from "../lib/format";
+import type { Visibility } from "../types";
+import { VisibilityBadge, VisibilityPicker } from "../features/workspaces/Visibility";
 import { Avatar } from "./shell/Sidebar";
 
 function takePendingName() {
@@ -77,7 +79,10 @@ export function WorkspacesPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <Avatar name={workspace.name} />
-                  <RoleBadge role={workspace.role} />
+                  <span className="flex items-center gap-1.5">
+                    <VisibilityBadge visibility={workspace.visibility} />
+                    <RoleBadge role={workspace.role} />
+                  </span>
                 </div>
                 <p className="mt-4 truncate text-[17px] font-semibold">{workspace.name}</p>
                 <p className="mt-0.5 text-[13px] text-muted">
@@ -97,7 +102,7 @@ export function WorkspacesPage() {
         open={dialogOpen}
         onClose={closeDialog}
         title="Create a workspace"
-        description="You'll be its admin and can add people next."
+        description="You'll be its admin and can add people next. You can change who can ask later in Settings."
       >
         {/* Mounted only while open, so it starts fresh each time. */}
         {dialogOpen && <CreateWorkspaceForm initialName={pendingName} onCancel={closeDialog} />}
@@ -116,19 +121,23 @@ function CreateWorkspaceForm({
   const create = useCreateWorkspace();
   const navigate = useNavigate();
   const [name, setName] = useState(initialName);
+  const [visibility, setVisibility] = useState<Visibility>("PRIVATE"); // safe default
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    create.mutate(name.trim(), {
-      onSuccess: (workspace) => {
-        try {
-          sessionStorage.removeItem(PENDING_WORKSPACE_KEY);
-        } catch {
-          /* nothing stored */
-        }
-        navigate(`/workspaces/${workspace.id}`);
+    create.mutate(
+      { name: name.trim(), visibility },
+      {
+        onSuccess: (workspace) => {
+          try {
+            sessionStorage.removeItem(PENDING_WORKSPACE_KEY);
+          } catch {
+            /* nothing stored */
+          }
+          navigate(`/workspaces/${workspace.id}`);
+        },
       },
-    });
+    );
   };
 
   return (
@@ -145,6 +154,7 @@ function CreateWorkspaceForm({
         error={fieldError(create.error, "name")}
         hint="2 to 60 characters."
       />
+      <VisibilityPicker value={visibility} onChange={setVisibility} />
       <FormError
         message={
           create.isError && !fieldError(create.error, "name") ? create.error.message : undefined

@@ -1,7 +1,10 @@
 import { z } from "zod";
 
+const visibility = z.enum(["PRIVATE", "PUBLIC"]);
+
 export const CreateWorkspaceSchema = z.object({
   name: z.string().trim().min(2).max(60),
+  visibility: visibility.default("PRIVATE"),
 });
 
 export const AddMemberSchema = z.object({
@@ -9,9 +12,14 @@ export const AddMemberSchema = z.object({
   role: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
 });
 
-export const UpdateWorkspaceSchema = z.object({
-  name: z.string().trim().min(2).max(60),
-});
+export const UpdateWorkspaceSchema = z
+  .object({
+    name: z.string().trim().min(2).max(60).optional(),
+    visibility: visibility.optional(),
+  })
+  .refine((data) => data.name !== undefined || data.visibility !== undefined, {
+    message: "Send a name or a visibility to update",
+  });
 
 export const memberParams = z.object({
   workspaceId: z.uuid(),

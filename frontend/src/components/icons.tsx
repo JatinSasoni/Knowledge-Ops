@@ -179,3 +179,10 @@ export const SparkleIcon = ({ className = "size-4" }: IconProps) => (
     />
   </svg>
 );
+
+export const GlobeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5S9.7 5.9 12 3.5z" />
+  </Icon>
+);

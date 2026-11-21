@@ -161,7 +161,9 @@ function WorkspaceSwitcher({
             {current?.name ?? "Choose a workspace"}
           </span>
           <span className="block text-xs text-muted">
-            {current ? (current.role === "ADMIN" ? "Admin" : "Member") : "Switch workspace"}
+            {current
+              ? `${current.role === "ADMIN" ? "Admin" : "Member"} · ${current.visibility === "PUBLIC" ? "Public" : "Private"}`
+              : "Switch workspace"}
           </span>
         </span>
         <ChevronsUpDownIcon className="size-4 shrink-0 text-muted" />

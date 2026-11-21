@@ -16,11 +16,12 @@ const slugify = (name: string) =>
     .replace(/(^-|-$)/g, "")}-${randomBytes(3).toString("hex")}`;
 
 export const createWorkspace = asyncHandler(async (req, res) => {
-  const { name } = req.body as CreateWorkspaceInput;
+  const { name, visibility } = req.body as CreateWorkspaceInput;
 
   const workspace = await prisma.workspace.create({
     data: {
       name,
+      visibility,
       slug: slugify(name),
       members: { create: { userId: req.user!.id, role: "ADMIN" } },
     },
@@ -79,11 +80,11 @@ export const addMember = asyncHandler(async (req, res) => {
 
 // PATCH /api/v1/workspaces/:workspaceId (ADMIN only)
 export const updateWorkspace = asyncHandler(async (req, res) => {
-  const { name } = req.body as UpdateWorkspaceInput;
+  const { name, visibility } = req.body as UpdateWorkspaceInput;
 
   const workspace = await prisma.workspace.update({
     where: { id: req.membership!.workspaceId },
-    data: { name },
+    data: { name, visibility },
   });
 
   res.json({ workspace: { ...workspace, role: req.membership!.role } });
