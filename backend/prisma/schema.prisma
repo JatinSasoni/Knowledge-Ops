@@ -67,6 +67,7 @@ model Workspace{
   documents Document[]
   chunk DocumentChunk[]
   conversations Conversation[]
+  widgetKeys WidgetKey[]
   createdAt DateTime @default(now())
 }
 
@@ -137,4 +138,18 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+model WidgetKey {
+  id             String    @id @default(uuid())
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name           String              // a label for admins, e.g. "Help site"
+  key            String    @unique   // "pk_…", public: it goes into the website's HTML
+  allowedOrigins String[]            // websites allowed to show the widget, e.g. ["https://acme.com"]
+  revokedAt      DateTime?           // set when revoked; revoked keys stop working
+  lastUsedAt     DateTime?           // updated by the widget endpoint in W3
+  createdAt      DateTime  @default(now())
+
+  @@index([workspaceId])
 }

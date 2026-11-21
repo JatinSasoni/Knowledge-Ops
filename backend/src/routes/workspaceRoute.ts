@@ -21,6 +21,13 @@ import { SearchSchema } from "../schemas/search.js";
 import { search } from "../controllers/searchController.js";
 import { ChatSchema } from "../schemas/chat.js";
 import { chat, getMessages, listConversations } from "../controllers/chatController.js";
+import { CreateWidgetKeySchema, UpdateWidgetKeySchema } from "../schemas/widgetKey.js";
+import {
+  createWidgetKey,
+  listWidgetKeys,
+  revokeWidgetKey,
+  updateWidgetKey,
+} from "../controllers/widgetKeyController.js";
 
 const workspaceRouter = Router();
 
@@ -57,4 +64,24 @@ workspaceRouter.get(
   getMessages,
 );
 
+//--- Widget Keys ( ADMINS ONLY)
+
+workspaceRouter.get("/:workspaceId/widget-keys", requireMembership("ADMIN"), listWidgetKeys);
+workspaceRouter.post(
+  "/:workspaceId/widget-keys",
+  requireMembership("ADMIN"),
+  validate(CreateWidgetKeySchema),
+  createWidgetKey,
+);
+workspaceRouter.patch(
+  "/:workspaceId/widget-keys/:keyId",
+  requireMembership("ADMIN"),
+  validate(UpdateWidgetKeySchema),
+  updateWidgetKey,
+);
+workspaceRouter.delete(
+  "/:workspaceId/widget-keys/:keyId",
+  requireMembership("ADMIN"),
+  revokeWidgetKey,
+);
 export default workspaceRouter;
