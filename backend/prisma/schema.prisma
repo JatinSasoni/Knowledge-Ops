@@ -68,6 +68,7 @@ model Workspace{
   chunk DocumentChunk[]
   conversations Conversation[]
   widgetKeys WidgetKey[]
+  widgetUsage WidgetUsage[]
   createdAt DateTime @default(now())
 }
 
@@ -152,4 +153,13 @@ model WidgetKey {
   createdAt      DateTime  @default(now())
 
   @@index([workspaceId])
+}
+
+
+model WidgetUsage {
+  workspaceId String
+  workspace Workspace @relation(fields: [workspaceId],references: [id],onDelete: Cascade)
+  answers     Int       @default(0) 
+  month String 
+  @@id([workspaceId,month])
 }
