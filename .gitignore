@@ -22,6 +22,7 @@ npm-debug.log*
 
 # Vite
 .vite/
+readme
 
 # Test / coverage (v1.1)
 coverage/
