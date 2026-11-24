@@ -1,0 +1,47 @@
+// Escape user-provided text (names, workspace names) before putting it into HTML.
+const esc = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/*
+ * Every Citely email uses this one layout: heading, a few paragraphs, an optional button.
+ * Emails need INLINE styles (many mail apps ignore <style> blocks), and a plain-text
+ * version too (some apps show only text, and spam filters like having both).
+ */
+export function emailLayout(input: {
+  heading: string;
+  paragraphs: string[];
+  button?: { label: string; url: string };
+  footnote?: string;
+}) {
+  const { heading, paragraphs, button, footnote } = input;
+
+  const html = `<!doctype html>
+<html><body style="margin:0;background:#ede6d6;font-family:Arial,Helvetica,sans-serif;color:#121612">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fbf8f1;border-radius:12px;padding:32px">
+        <tr><td>
+          <p style="margin:0 0 24px;font-size:20px;font-weight:bold;color:#1f4d3a">Citely</p>
+          <h1 style="margin:0 0 16px;font-size:22px">${esc(heading)}</h1>
+          ${paragraphs.map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6">${esc(p)}</p>`).join("")}
+          ${
+            button
+              ? `<p style="margin:24px 0"><a href="${esc(button.url)}" style="display:inline-block;background:#1f4d3a;color:#ede6d6;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:8px">${esc(button.label)}</a></p>`
+              : ""
+          }
+          ${footnote ? `<p style="margin:24px 0 0;font-size:13px;color:#5b5a4f">${esc(footnote)}</p>` : ""}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+  const text = [
+    heading,
+    "",
+    ...paragraphs,
+    ...(button ? ["", `${button.label}: ${button.url}`] : []),
+    ...(footnote ? ["", footnote] : []),
+  ].join("\n");
+
+  return { html, text };
+}

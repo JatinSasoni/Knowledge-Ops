@@ -15,3 +15,15 @@ export const ingestQueue = new Queue<IngestJob>("ingest", {
     removeOnFail: 500,
   },
 });
+
+export type EmailJob = { to: string; subject: string; html: string; text: string };
+
+export const emailQueue = new Queue<EmailJob>("email", {
+  connection: redis,
+  defaultJobOptions: {
+    attempts: 5,
+    backoff: { type: "exponential", delay: 10_000 }, // 10s, 20s, 40s, …
+    removeOnComplete: 100,
+    removeOnFail: 500,
+  },
+});

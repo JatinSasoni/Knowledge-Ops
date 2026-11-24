@@ -120,6 +120,11 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       REDIS_URL: redis://redis:6379
       OPENAI_API_KEY: ${OPENAI_API_KEY:?set OPENAI_API_KEY in .env}
+      RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY in .env}
+      EMAIL_FROM: ${EMAIL_FROM:-Citely <citely@jatinsasoni.in>}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      APP_URL: http://localhost
+
     depends_on:
       migrate:
         condition: service_completed_successfully
