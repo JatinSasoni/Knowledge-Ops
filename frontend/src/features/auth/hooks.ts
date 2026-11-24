@@ -49,6 +49,23 @@ export function useRegister() {
   return useMutation({ mutationFn: authApi.register, onSuccess: startSession });
 }
 
+export function useForgotPassword() {
+  return useMutation({ mutationFn: authApi.forgotPassword });
+}
+
+// A reset signs the account out everywhere on the server. Mirror that here, so this
+// browser doesn't keep showing a session that no longer exists.
+export function useResetPassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.resetPassword,
+    onSuccess: () => {
+      session.clear();
+      queryClient.setQueryData(meKey, null);
+    },
+  });
+}
+
 export function useLogout() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

@@ -45,3 +45,24 @@ export function emailLayout(input: {
 
   return { html, text };
 }
+
+export const resetPasswordEmail = (link: string) =>
+  emailLayout({
+    heading: "Reset your password",
+    paragraphs: [
+      "Someone (hopefully you) asked to reset the password for your Citely account.",
+      "The link works once and expires in 30 minutes.",
+    ],
+    button: { label: "Choose a new password", url: link },
+    footnote: "Didn't ask for this? You can ignore this email. Your password won't change.",
+  });
+
+export const passwordChangedEmail = () =>
+  emailLayout({
+    heading: "Your password was changed",
+    paragraphs: [
+      "The password for your Citely account was just changed, and all devices were signed out.",
+      "If this was you, there's nothing else to do.",
+    ],
+    footnote: "If this wasn't you, reset your password right away and reply to this email.",
+  });

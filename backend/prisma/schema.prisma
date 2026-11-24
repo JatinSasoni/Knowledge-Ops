@@ -43,6 +43,7 @@ model User{
   conversations Conversation[]
   createdAt DateTime @default(now())
   refreshTokens RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model RefreshToken{
@@ -57,6 +58,19 @@ model RefreshToken{
   @@index([userId])
   @@index([familyId])
 }
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique   // sha256 of the token in the email link; the link itself is never stored
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?           // set when used: a link works only once
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
 
 model Workspace{
   id String @id @default(uuid())

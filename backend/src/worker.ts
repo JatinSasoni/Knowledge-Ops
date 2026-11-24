@@ -42,6 +42,7 @@ worker.on("failed", async (job, error) => {
 worker.on("completed", (job) => console.log(`Job ${job.id} done: document ${job.data.documentId}`));
 
 worker.on("ready", () => console.log("Worker ready, waiting for ingest jobs"));
+emailWorker.on("ready", () => console.log("Email worker ready, waiting for email jobs"));
 
 // Docker sends SIGTERM on stop: finish the current job, then exit.
 async function shutdown() {

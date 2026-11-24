@@ -17,6 +17,17 @@ export async function logout(): Promise<void> {
   await http.post("/auth/logout");
 }
 
+// Always answers the same message, whether or not the email has an account.
+export async function forgotPassword(email: string): Promise<string> {
+  const response = await http.post<{ message: string }>("/auth/forgot-password", { email });
+  return response.data.message;
+}
+
+export async function resetPassword(input: { token: string; password: string }): Promise<string> {
+  const response = await http.post<{ message: string }>("/auth/reset-password", input);
+  return response.data.message;
+}
+
 export async function getMe(): Promise<User> {
   const response = await http.get<{ user: User }>("/auth/me");
   return response.data.user;
