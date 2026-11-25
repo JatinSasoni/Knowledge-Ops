@@ -8,6 +8,9 @@ import {
   type UpdateWorkspaceInput,
 } from "../schemas/workspace.js";
 import { asyncHandler } from "../util/asyncHandler.js";
+import { env } from "../config/env.js";
+import { queueEmail } from "../lib/email.js";
+import { addedToWorkspaceEmail } from "../lib/emailTemplates.js";
 
 const slugify = (name: string) =>
   `${name
@@ -74,6 +77,25 @@ export const addMember = asyncHandler(async (req, res) => {
     data: { userId: user.id, workspaceId: req.membership!.workspaceId, role },
     select: { id: true, role: true, user: { select: { id: true, email: true } } },
   });
+
+  const workspace = await prisma.workspace.findUniqueOrThrow({
+    where: { id: req.membership!.workspaceId },
+    select: { id: true, name: true },
+  });
+  try {
+    await queueEmail({
+      to: member.user.email,
+      subject: `You've been added to ${workspace.name} on Citely`,
+      ...addedToWorkspaceEmail({
+        inviter: req.user!.email,
+        workspace: workspace.name,
+        role: member.role,
+        link: `${env.APP_URL}/workspaces/${workspace.id}`,
+      }),
+    });
+  } catch (error) {
+    console.error("[members] couldn't queue the 'added' email", error);
+  }
 
   res.status(201).json({ member });
 });

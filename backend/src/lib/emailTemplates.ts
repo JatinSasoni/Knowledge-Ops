@@ -66,3 +66,22 @@ export const passwordChangedEmail = () =>
     ],
     footnote: "If this wasn't you, reset your password right away and reply to this email.",
   });
+
+export const addedToWorkspaceEmail = (input: {
+  inviter: string; // who added them (email)
+  workspace: string; // workspace name
+  role: "ADMIN" | "MEMBER";
+  link: string;
+}) =>
+  emailLayout({
+    heading: `You've been added to ${input.workspace}`,
+    paragraphs: [
+      `${input.inviter} added you to the "${input.workspace}" workspace on Citely as ${
+        input.role === "ADMIN" ? "an admin" : "a member"
+      }.`,
+      "You can now ask questions about its documents and see the passage behind every answer.",
+    ],
+    button: { label: "Open workspace", url: input.link },
+    footnote:
+      "Not expecting this? You can ignore this email, or ask the workspace admin to remove you.",
+  });
