@@ -1,12 +1,23 @@
 import { prisma } from "./lib/prisma.js";
 import { Worker } from "bullmq";
-import { redis, type IngestJob } from "./lib/queue.js";
+import { redis, type EmailJob, type IngestJob } from "./lib/queue.js";
 import { ingestDocument } from "./ingest/ingestDocument.js";
+import { sendEmailNow } from "./lib/email.js";
 
 const worker = new Worker<IngestJob>("ingest", (job) => ingestDocument(job.data.documentId), {
   connection: redis,
   concurrency: 2,
 });
+
+const emailWorker = new Worker<EmailJob>("email", (job) => sendEmailNow(job.data), {
+  connection: redis,
+  concurrency: 5,
+});
+
+emailWorker.on("completed", (job) => console.log(`Email ${job.id} sent to ${job.data.to}`));
+emailWorker.on("failed", (job, error) =>
+  console.log(`Email ${job?.id} attempt ${job?.attemptsMade} failed: ${error.message}`),
+);
 
 // After the LAST attempt fails, record a readable reason on the document
 worker.on("failed", async (job, error) => {
@@ -31,10 +42,11 @@ worker.on("failed", async (job, error) => {
 worker.on("completed", (job) => console.log(`Job ${job.id} done: document ${job.data.documentId}`));
 
 worker.on("ready", () => console.log("Worker ready, waiting for ingest jobs"));
+emailWorker.on("ready", () => console.log("Email worker ready, waiting for email jobs"));
 
 // Docker sends SIGTERM on stop: finish the current job, then exit.
 async function shutdown() {
-  await worker.close();
+  await Promise.all([worker.close(), emailWorker.close()]);
   await prisma.$disconnect();
   process.exit(0);
 }

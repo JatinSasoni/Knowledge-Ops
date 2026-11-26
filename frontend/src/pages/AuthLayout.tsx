@@ -33,16 +33,20 @@ export function AuthLayout({
   intro,
   aside,
   asideSide = "right",
+  redirectIfSignedIn = true,
   children,
 }: {
   title: string;
   intro: string;
   aside: ReactNode;
   asideSide?: "left" | "right";
+  // Login/register send signed-in people to their workspaces. The reset-password page
+  // turns this off: someone signed in may still open a reset link from their email.
+  redirectIfSignedIn?: boolean;
   children: ReactNode;
 }) {
   const { data: user, isPending } = useMe();
-  if (!isPending && user) return <Navigate to="/workspaces" replace />;
+  if (redirectIfSignedIn && !isPending && user) return <Navigate to="/workspaces" replace />;
 
   return (
     <div

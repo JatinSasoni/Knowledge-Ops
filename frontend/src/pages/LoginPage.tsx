@@ -48,6 +48,12 @@ export function LoginPage() {
           required
           error={fieldError(login.error, "password")}
         />
+        <Link
+          to="/forgot-password"
+          className="-mt-2 self-end text-sm font-semibold text-pine underline-offset-4 hover:underline"
+        >
+          Forgot password?
+        </Link>
         <Button type="submit" disabled={login.isPending}>
           {login.isPending ? "Signing in…" : "Sign in"}
         </Button>

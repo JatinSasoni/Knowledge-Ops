@@ -46,3 +46,30 @@ export const widgetKeyLimit = rateLimit({
   keyGenerator: (req) => (req.body as { key: string }).key, // runs after validate(), so key exists
   handler: tooMany,
 });
+
+// "Forgot password" sends emails, so limit it: per IP, and per target email address
+// (stops someone flooding a victim's inbox from many IPs).
+const tooManyResets = (_req: Request, res: Response) => {
+  res.status(429).json({
+    error: { code: "RATE_LIMITED", message: "Too many reset requests. Please try again later." },
+  });
+};
+
+export const forgotPasswordIpLimit = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  store: redisStore("rl:forgot:ip:"),
+  handler: tooManyResets,
+});
+
+export const forgotPasswordEmailLimit = rateLimit({
+  windowMs: 60 * 60_000,
+  limit: 3, // 3 reset emails per address per hour
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  store: redisStore("rl:forgot:email:"),
+  keyGenerator: (req) => (req.body as { email: string }).email, // after validate(): lowercased
+  handler: tooManyResets,
+});

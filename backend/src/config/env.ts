@@ -19,6 +19,10 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
   EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
   CHAT_MODEL: z.string().min(1),
+  RESEND_API_KEY: z.string().startsWith("re_"),
+  EMAIL_FROM: z.string().min(3),
+  EMAIL_REPLY_TO: z.email().optional(), // replies go to a real inbox (Zoho)
+  APP_URL: z.url().default("http://localhost:5173"),
 });
 
 const parsed = envSchema.safeParse(process.env);
