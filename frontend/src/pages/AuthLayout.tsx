@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, Navigate } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import { FormError } from "../components/ui";
 import { useMe } from "../features/auth/hooks";
 
@@ -46,7 +46,8 @@ export function AuthLayout({
   children: ReactNode;
 }) {
   const { data: user, isPending } = useMe();
-  if (redirectIfSignedIn && !isPending && user) return <Navigate to="/workspaces" replace />;
+  const from = (useLocation().state as { from?: string } | null)?.from ?? "/workspaces";
+  if (redirectIfSignedIn && !isPending && user) return <Navigate to={from} replace />;
 
   return (
     <div

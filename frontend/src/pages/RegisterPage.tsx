@@ -4,6 +4,7 @@ import { Button, Field, FormError } from "../components/ui";
 import { useRegister } from "../features/auth/hooks";
 import { ApiError, fieldError } from "../lib/api";
 import { RegisterAside } from "../features/auth/AuthAside";
+import { GoogleButton, OrDivider } from "../features/auth/GoogleButton";
 import { AuthLayout } from "./AuthLayout";
 
 export function RegisterPage() {
@@ -35,6 +36,8 @@ export function RegisterPage() {
       intro="One account for every workspace you join. It takes less than a minute."
       aside={<RegisterAside />}
     >
+      <GoogleButton onSuccess={() => navigate(from, { replace: true })} />
+      <OrDivider />
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <FormError message={!hasFieldErrors ? message : undefined} />
         <Field

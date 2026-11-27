@@ -3,6 +3,7 @@ import { asyncHandler } from "../util/asyncHandler.js";
 import { AppError } from "../util/AppError.js";
 import type {
   ForgotPasswordInput,
+  GoogleLoginInput,
   LoginInput,
   RegisterInput,
   ResetPasswordInput,
@@ -15,6 +16,7 @@ import { randomBytes } from "node:crypto";
 import { env } from "node:process";
 import { queueEmail } from "../lib/email.js";
 import { passwordChangedEmail, resetPasswordEmail } from "../lib/emailTemplates.js";
+import { verifyGoogleToken } from "../lib/google.js";
 
 type SessionUser = { id: string; email: string; createdAt: Date };
 
@@ -42,8 +44,11 @@ export const register = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body as LoginInput;
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    throw AppError.unauthorized("Invalid email or password");
+
+  if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+    throw AppError.unauthorized(
+      "Invalid email or password. Signed up with Google? Use Continue with Google.",
+    );
   }
   const accessToken = await startSession(res, user);
   res.json({ user: publicUser(user), accessToken });
@@ -175,4 +180,36 @@ export const resetPassword = asyncHandler(async (req, res) => {
     ...passwordChangedEmail(),
   });
   res.json({ message: "Password changed. Please sign in with your new password." });
+});
+
+// POST /api/v1/auth/google
+export const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body as GoogleLoginInput;
+  const profile = await verifyGoogleToken(credential);
+  if (!profile) throw AppError.unauthorized("Google sign-in failed. Please try again.");
+
+  let user = await prisma.user.findUnique({ where: { googleId: profile.googleId } });
+
+  if (!user) {
+    const existing = await prisma.user.findUnique({ where: { email: profile.email } });
+    if (existing) {
+      user = await prisma.$transaction(async (tx) => {
+        await tx.refreshToken.updateMany({
+          where: { userId: existing.id, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+        return tx.user.update({
+          where: { id: existing.id },
+          data: { googleId: profile.googleId, password: null, name: existing.name ?? profile.name },
+        });
+      });
+    } else {
+      user = await prisma.user.create({
+        data: { email: profile.email, googleId: profile.googleId, name: profile.name },
+      });
+    }
+  }
+
+  const accessToken = await startSession(res, user);
+  res.json({ user: publicUser(user), accessToken });
 });
