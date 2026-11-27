@@ -7,6 +7,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { InvitePage } from "./pages/InvitePage";
 import { ChatTab } from "./pages/workspace/ChatTab";
 import { DocumentsTab } from "./pages/workspace/DocumentsTab";
 import { MembersTab } from "./pages/workspace/MembersTab";
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
   { path: "/register", element: <RegisterPage /> },
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
+  { path: "/invite", element: <InvitePage /> },
   {
     element: <ProtectedRoute />,
     children: [

@@ -96,3 +96,22 @@ export type WidgetKey = {
   lastUsedAt: string | null;
   createdAt: string;
 };
+
+/* ---------- Invitations ---------- */
+
+// A pending invite for someone who doesn't have an account yet (admins see these).
+export type Invitation = {
+  id: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  createdAt: string;
+};
+
+// What the invite page shows before the person signs in.
+export type InvitationPreview = {
+  email: string;
+  role: Role;
+  workspaceName: string;
+  invitedBy: string;
+};

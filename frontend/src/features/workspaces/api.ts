@@ -1,5 +1,5 @@
 import { http } from "../../lib/api";
-import type { Member, Role, Visibility, Workspace, WorkspaceDetail } from "../../types";
+import type { Invitation, Member, Role, Visibility, Workspace, WorkspaceDetail } from "../../types";
 
 /* ---------- Workspaces ---------- */
 
@@ -41,12 +41,33 @@ export async function getMembers(workspaceId: string): Promise<Member[]> {
   return response.data.members;
 }
 
-export async function addMember(workspaceId: string, email: string, role: Role): Promise<Member> {
-  const response = await http.post<{ member: Member }>(`/workspaces/${workspaceId}/members`, {
-    email,
-    role,
-  });
-  return response.data.member;
+// Adding someone has two outcomes: they already have an account (added right away),
+// or they don't (the server emails them an invitation instead).
+export type AddMemberResult =
+  { kind: "added"; member: Member } | { kind: "invited"; invitation: Invitation };
+
+export async function addMember(
+  workspaceId: string,
+  email: string,
+  role: Role,
+): Promise<AddMemberResult> {
+  const response = await http.post<{ member?: Member; invitation?: Invitation }>(
+    `/workspaces/${workspaceId}/members`,
+    { email, role },
+  );
+  if (response.data.invitation) return { kind: "invited", invitation: response.data.invitation };
+  return { kind: "added", member: response.data.member! };
+}
+
+export async function getInvitations(workspaceId: string): Promise<Invitation[]> {
+  const response = await http.get<{ invitations: Invitation[] }>(
+    `/workspaces/${workspaceId}/invitations`,
+  );
+  return response.data.invitations;
+}
+
+export async function cancelInvitation(workspaceId: string, invitationId: string): Promise<void> {
+  await http.delete(`/workspaces/${workspaceId}/invitations/${invitationId}`);
 }
 
 export async function removeMember(workspaceId: string, userId: string): Promise<void> {

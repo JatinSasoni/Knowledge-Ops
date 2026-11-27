@@ -4,8 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Select, type SelectOption } from "../../components/Select";
 import { Button, ConfirmButton, FormError, Panel, RoleBadge } from "../../components/ui";
 import { useMe } from "../../features/auth/hooks";
-import { keys, useAddMember, useMembers, useRemoveMember } from "../../features/workspaces/hooks";
+import {
+  keys,
+  useAddMember,
+  useCancelInvitation,
+  useInvitations,
+  useMembers,
+  useRemoveMember,
+} from "../../features/workspaces/hooks";
 import { ApiError, fieldError } from "../../lib/api";
+import { formatDate } from "../../lib/format";
+import { useToast } from "../../lib/toast";
 import type { Role } from "../../types";
 import { useWorkspaceContext } from "./context";
 
@@ -17,7 +26,6 @@ const ROLE_OPTIONS: SelectOption<Role>[] = [
 // Turn the backend's status codes into sentences that say what to do next.
 function addMemberError(error: unknown) {
   if (!(error instanceof ApiError)) return undefined;
-  if (error.status === 404) return "No account uses that email. Ask them to sign up first.";
   if (error.status === 409) return "That person is already a member.";
   return fieldError(error, "email") ?? error.message;
 }
@@ -34,10 +42,26 @@ export function MembersTab() {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("MEMBER");
+  const toast = useToast();
+  const invitations = useInvitations(workspace.id, isAdmin);
+  const cancelInvite = useCancelInvitation(workspace.id);
 
   function onAdd(e: FormEvent) {
     e.preventDefault();
-    add.mutate({ email: email.trim(), role }, { onSuccess: () => setEmail("") });
+    const address = email.trim();
+    add.mutate(
+      { email: address, role },
+      {
+        onSuccess: (result) => {
+          setEmail("");
+          toast(
+            result.kind === "invited"
+              ? `Invitation sent to ${address}. They'll join once they accept it.`
+              : `${address} was added and got an email about it.`,
+          );
+        },
+      },
+    );
   }
 
   function onRemove(userId: string) {
@@ -96,13 +120,54 @@ export function MembersTab() {
         )}
         {/* e.g. 409 "Cannot remove the last admin of a workspace" from the backend */}
         <FormError message={remove.isError ? remove.error.message : undefined} />
+
+        {isAdmin && (invitations.data?.length ?? 0) > 0 && (
+          <section className="mt-4">
+            <h2 className="mb-2 text-[13px] font-bold tracking-[0.1em] text-muted uppercase">
+              Pending invitations
+            </h2>
+            <Panel className="overflow-hidden">
+              <ul>
+                {invitations.data!.map((invite, i) => (
+                  <li
+                    key={invite.id}
+                    className={`flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 ${i > 0 ? "border-t border-line" : ""}`}
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full border border-dashed border-line text-muted">
+                      @
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{invite.email}</span>
+                      <span className="block text-xs text-muted">
+                        Invited {formatDate(invite.createdAt)} · expires{" "}
+                        {formatDate(invite.expiresAt)}
+                      </span>
+                    </span>
+                    <RoleBadge role={invite.role} />
+                    <ConfirmButton
+                      label="Cancel"
+                      confirmLabel="Cancel invitation?"
+                      onConfirm={() => cancelInvite.mutate(invite.id)}
+                      disabled={cancelInvite.isPending}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+            <p className="mt-2 text-xs text-muted">
+              To resend, add the same email again: a new link replaces the old one.
+            </p>
+          </section>
+        )}
       </div>
 
       <aside className="lg:col-span-4">
         {isAdmin ? (
           <Panel className="bg-sand p-6">
             <h2 className="font-display text-[22px] font-bold">Add a person</h2>
-            <p className="mt-1 text-[15px] text-ink/75">They need a Citely account first.</p>
+            <p className="mt-1 text-[15px] text-ink/75">
+              If they don't have a Citely account yet, we'll email them an invitation.
+            </p>
             <form onSubmit={onAdd} className="mt-4 flex flex-col gap-3" noValidate>
               <label htmlFor="member-email" className="text-sm font-medium">
                 Email
@@ -122,7 +187,7 @@ export function MembersTab() {
               <Select label="Role" value={role} options={ROLE_OPTIONS} onChange={setRole} />
               <FormError message={addMemberError(add.error)} />
               <Button type="submit" disabled={add.isPending || !email.trim()}>
-                {add.isPending ? "Adding…" : "Add to workspace"}
+                {add.isPending ? "Adding…" : "Add or invite"}
               </Button>
             </form>
           </Panel>

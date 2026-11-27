@@ -11,6 +11,7 @@ export const keys = {
   workspace: (id: string) => ["workspace", id],
   members: (id: string) => ["workspace", id, "members"],
   documents: (id: string) => ["workspace", id, "documents"],
+  invitations: (id: string) => ["workspace", id, "invitations"],
 };
 
 /* ---------- Workspaces ---------- */
@@ -88,9 +89,28 @@ export function useAddMember(workspaceId: string) {
     mutationFn: (input: { email: string; role: Role }) =>
       workspacesApi.addMember(workspaceId, input.email, input.role),
     onSuccess: () => {
-      // Refreshes the workspace (member count) and, because it shares the prefix, members too.
+      // Refreshes the workspace (member count) and, because they share the prefix,
+      // the members and pending invitations lists too.
       queryClient.invalidateQueries({ queryKey: keys.workspace(workspaceId) });
     },
+  });
+}
+
+/* ---------- Invitations (people without an account yet) ---------- */
+
+export function useInvitations(workspaceId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: keys.invitations(workspaceId),
+    queryFn: () => workspacesApi.getInvitations(workspaceId),
+    enabled, // admins only
+  });
+}
+
+export function useCancelInvitation(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (invitationId: string) => workspacesApi.cancelInvitation(workspaceId, invitationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.invitations(workspaceId) }),
   });
 }
 

@@ -25,6 +25,7 @@ export const memberParams = z.object({
   workspaceId: z.uuid(),
   userId: z.uuid(),
 });
+export const invitationParams = z.object({ workspaceId: z.uuid(), invitationId: z.uuid() });
 
 export const workspaceParams = z.object({ workspaceId: z.uuid() });
 

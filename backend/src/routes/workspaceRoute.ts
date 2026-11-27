@@ -7,9 +7,11 @@ import {
 } from "../schemas/workspace.js";
 import {
   addMember,
+  cancelInvitation,
   createWorkspace,
   deleteWorkspace,
   getWorkspace,
+  listInvitations,
   listMembers,
   listMyWorkspaces,
   removeMember,
@@ -84,4 +86,11 @@ workspaceRouter.delete(
   requireMembership("ADMIN"),
   revokeWidgetKey,
 );
+workspaceRouter.get("/:workspaceId/invitations", requireMembership("ADMIN"), listInvitations);
+workspaceRouter.delete(
+  "/:workspaceId/invitations/:invitationId",
+  requireMembership("ADMIN"),
+  cancelInvitation,
+);
+
 export default workspaceRouter;
