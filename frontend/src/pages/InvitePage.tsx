@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Button, FormError } from "../components/ui";
 import { RegisterAside } from "../features/auth/AuthAside";
+import { GoogleButton, OrDivider } from "../features/auth/GoogleButton";
 import { useLogout, useMe } from "../features/auth/hooks";
 import * as invitationsApi from "../features/invitations/api";
 import { pendingInvite } from "../features/invitations/api";
@@ -71,6 +72,8 @@ export function InvitePage() {
     content = (
       <div className="flex flex-col gap-4">
         <InviteCard invitation={invitation!} roleText={roleText} />
+        <GoogleButton onSuccess={() => {}} />
+        <OrDivider />
         <Link
           to="/register"
           state={{ from: "/invite", email: invitation!.email }}

@@ -13,6 +13,13 @@ export async function register(credentials: Credentials): Promise<AuthResponse> 
   return response.data;
 }
 
+// The "credential" is the ID token Google's button gave us. The server verifies it with
+// Google and answers exactly like a password login: { user, accessToken } + refresh cookie.
+export async function googleLogin(credential: string): Promise<AuthResponse> {
+  const response = await http.post<AuthResponse>("/auth/google", { credential });
+  return response.data;
+}
+
 export async function logout(): Promise<void> {
   await http.post("/auth/logout");
 }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   forgotPassword,
+  googleLogin,
   login,
   logout,
   me,
@@ -11,6 +12,7 @@ import {
 import { validate } from "../middleware/validate.js";
 import {
   forgotPasswordSchema,
+  googleLoginSchema,
   loginSchema,
   registerSchema,
   resetPasswordSchema,
@@ -34,5 +36,6 @@ authRouter.post(
   forgotPassword,
 );
 authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+authRouter.post("/google", validate(googleLoginSchema), googleLogin);
 
 export default authRouter;

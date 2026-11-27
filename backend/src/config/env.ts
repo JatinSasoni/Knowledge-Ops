@@ -23,6 +23,7 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(3),
   EMAIL_REPLY_TO: z.email().optional(), // replies go to a real inbox (Zoho)
   APP_URL: z.url().default("http://localhost:5173"),
+  GOOGLE_CLIENT_ID: z.string().endsWith(".apps.googleusercontent.com"),
 });
 
 const parsed = envSchema.safeParse(process.env);

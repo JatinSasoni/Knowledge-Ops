@@ -49,6 +49,11 @@ export function useRegister() {
   return useMutation({ mutationFn: authApi.register, onSuccess: startSession });
 }
 
+export function useGoogleLogin() {
+  const startSession = useStartSession();
+  return useMutation({ mutationFn: authApi.googleLogin, onSuccess: startSession });
+}
+
 export function useForgotPassword() {
   return useMutation({ mutationFn: authApi.forgotPassword });
 }

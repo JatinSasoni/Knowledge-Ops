@@ -4,6 +4,7 @@ import { Button, Field, FormError } from "../components/ui";
 import { useLogin } from "../features/auth/hooks";
 import { ApiError, fieldError } from "../lib/api";
 import { SignInAside } from "../features/auth/AuthAside";
+import { GoogleButton, OrDivider } from "../features/auth/GoogleButton";
 import { AuthLayout } from "./AuthLayout";
 
 export function LoginPage() {
@@ -30,6 +31,8 @@ export function LoginPage() {
       aside={<SignInAside />}
       asideSide="left"
     >
+      <GoogleButton onSuccess={() => navigate(from, { replace: true })} />
+      <OrDivider />
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <FormError message={!hasFieldErrors ? login.error?.message : undefined} />
         <Field

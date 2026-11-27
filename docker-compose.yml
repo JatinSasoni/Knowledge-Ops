@@ -71,6 +71,7 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       REDIS_URL: redis://redis:6379
       OPENAI_API_KEY: ${OPENAI_API_KEY:?set OPENAI_API_KEY in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -80,7 +81,10 @@ services:
         condition: service_healthy
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID} # same id as the API's, from the root .env
     restart: unless-stopped
     ports:
       - "8080:80"
