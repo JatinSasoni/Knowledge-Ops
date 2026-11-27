@@ -131,6 +131,14 @@
   }
 }
 
+/* Toasts slide down from the top. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 /* Section entrances. Only hidden once the script has marked the page ready,
    so content stays visible if JavaScript fails. */
 .reveal-ready [data-reveal] {

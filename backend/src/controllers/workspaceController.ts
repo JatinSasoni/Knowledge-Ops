@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { AppError } from "../util/AppError.js";
 import {
+  invitationParams,
   memberParams,
   type AddMemberInput,
   type CreateWorkspaceInput,
@@ -11,6 +12,7 @@ import { asyncHandler } from "../util/asyncHandler.js";
 import { env } from "../config/env.js";
 import { queueEmail } from "../lib/email.js";
 import { addedToWorkspaceEmail } from "../lib/emailTemplates.js";
+import { inviteByEmail } from "../lib/invitations.js";
 
 const slugify = (name: string) =>
   `${name
@@ -71,7 +73,16 @@ export const addMember = asyncHandler(async (req, res) => {
   const { email, role } = req.body as AddMemberInput;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw AppError.notFound("No user with that email");
+  if (!user) {
+    // No account yet: invite them by email instead of failing.
+    const invitation = await inviteByEmail({
+      workspaceId: req.membership!.workspaceId,
+      email,
+      role,
+      inviter: { id: req.user!.id, email: req.user!.email },
+    });
+    return res.status(201).json({ invitation });
+  }
 
   const member = await prisma.member.create({
     data: { userId: user.id, workspaceId: req.membership!.workspaceId, role },
@@ -144,5 +155,30 @@ export const removeMember = asyncHandler(async (req, res) => {
     await tx.member.delete({ where: { id: target.id } });
   });
 
+  res.status(204).end();
+});
+
+// GET /api/v1/workspaces/:workspaceId/invitations (ADMIN only): pending ones
+export const listInvitations = asyncHandler(async (req, res) => {
+  const invitations = await prisma.invitation.findMany({
+    where: {
+      workspaceId: req.membership!.workspaceId,
+      acceptedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true, email: true, role: true, expiresAt: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json({ invitations });
+});
+
+// DELETE /api/v1/workspaces/:workspaceId/invitations/:invitationId (ADMIN only)
+export const cancelInvitation = asyncHandler(async (req, res) => {
+  const { workspaceId, invitationId } = invitationParams.parse(req.params);
+  // deleteMany with workspaceId: an invitation of ANOTHER workspace can't be touched.
+  const { count } = await prisma.invitation.deleteMany({
+    where: { id: invitationId, workspaceId, acceptedAt: null },
+  });
+  if (count === 0) throw AppError.notFound("Invitation not found");
   res.status(204).end();
 });

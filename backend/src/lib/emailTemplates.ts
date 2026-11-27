@@ -85,3 +85,22 @@ export const addedToWorkspaceEmail = (input: {
     footnote:
       "Not expecting this? You can ignore this email, or ask the workspace admin to remove you.",
   });
+
+export const invitationEmail = (input: {
+  inviter: string;
+  workspace: string;
+  role: "ADMIN" | "MEMBER";
+  link: string;
+}) =>
+  emailLayout({
+    heading: `You're invited to ${input.workspace}`,
+    paragraphs: [
+      `${input.inviter} invited you to join the "${input.workspace}" workspace on Citely as ${
+        input.role === "ADMIN" ? "an admin" : "a member"
+      }.`,
+      "Citely answers questions from your team's documents and shows the exact passage behind every answer.",
+      "The invitation works once and expires in 7 days.",
+    ],
+    button: { label: "Accept invitation", url: input.link },
+    footnote: "Not expecting this? You can ignore this email.",
+  });

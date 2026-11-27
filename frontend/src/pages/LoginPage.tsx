@@ -60,7 +60,11 @@ export function LoginPage() {
       </form>
       <p className="text-sm text-muted">
         New here?{" "}
-        <Link to="/register" className="font-semibold text-pine underline underline-offset-4">
+        <Link
+          to="/register"
+          state={location.state}
+          className="font-semibold text-pine underline underline-offset-4"
+        >
           Create an account
         </Link>
       </p>

@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Button, Field, FormError } from "../components/ui";
 import { useRegister } from "../features/auth/hooks";
 import { ApiError, fieldError } from "../lib/api";
@@ -9,13 +9,16 @@ import { AuthLayout } from "./AuthLayout";
 export function RegisterPage() {
   const register = useRegister();
   const navigate = useNavigate();
+  // Coming from an invitation: prefill the invited email and go back to the invite afterwards.
+  const state = useLocation().state as { from?: string; email?: string } | null;
+  const from = state?.from ?? "/workspaces";
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     register.mutate(
       { email: String(form.get("email")), password: String(form.get("password")) },
-      { onSuccess: () => navigate("/workspaces", { replace: true }) },
+      { onSuccess: () => navigate(from, { replace: true }) },
     );
   };
 
@@ -39,6 +42,7 @@ export function RegisterPage() {
           name="email"
           type="email"
           autoComplete="email"
+          defaultValue={state?.email}
           required
           error={fieldError(error, "email")}
         />
@@ -57,7 +61,11 @@ export function RegisterPage() {
       </form>
       <p className="text-sm text-muted">
         Already have an account?{" "}
-        <Link to="/login" className="font-semibold text-pine underline underline-offset-4">
+        <Link
+          to="/login"
+          state={state?.from ? { from: state.from } : undefined}
+          className="font-semibold text-pine underline underline-offset-4"
+        >
           Sign in
         </Link>
       </p>

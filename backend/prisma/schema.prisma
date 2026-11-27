@@ -44,6 +44,7 @@ model User{
   createdAt DateTime @default(now())
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  invitationsSent Invitation[]
 }
 
 model RefreshToken{
@@ -83,6 +84,7 @@ model Workspace{
   conversations Conversation[]
   widgetKeys WidgetKey[]
   widgetUsage WidgetUsage[]
+  invitations Invitation[]
   createdAt DateTime @default(now())
 }
 
@@ -177,3 +179,20 @@ model WidgetUsage {
   month String 
   @@id([workspaceId,month])
 }
+
+model Invitation {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email       String              // who it's for (lowercase)
+  role        Role      @default(MEMBER)
+  tokenHash   String    @unique   // sha256 of the token in the email link
+  invitedById String
+  invitedBy   User      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  acceptedAt  DateTime?           // set once used: one use only
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+}
+
