@@ -57,8 +57,8 @@ export async function inviteByEmail(input: {
     console.error("[invites] couldn't queue the invitation email", error);
   }
 
-  const { workspace: _workspace, ...rest } = invitation;
-  return rest;
+  const { id, email, role, expiresAt, createdAt } = invitation;
+  return { id, email, role, expiresAt, createdAt };
 }
 
 // A pending invitation for this token (valid = not used, not expired), with its workspace.
