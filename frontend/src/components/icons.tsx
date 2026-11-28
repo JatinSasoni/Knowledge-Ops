@@ -186,3 +186,16 @@ export const GlobeIcon = (p: IconProps) => (
     <path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5S9.7 5.9 12 3.5z" />
   </Icon>
 );
+
+export const CodeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5l-3 14" />
+  </Icon>
+);
+
+export const PlayIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M10.5 9l4.5 3-4.5 3z" fill="currentColor" />
+  </Icon>
+);
