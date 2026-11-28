@@ -1,4 +1,3 @@
-import { Link } from "react-router";
 import { useMe } from "../features/auth/hooks";
 import { delay, h2Big, sectionY, wrap } from "../features/home/layout";
 import { RetrievalDemo } from "../features/home/RetrievalDemo";
@@ -11,14 +10,10 @@ import {
   StartSentence,
   Teams,
 } from "../features/home/Sections";
-import { Features, Hero, HeroLines, SeeThePassage } from "../features/home/Hero";
+import { AskAnything } from "../features/home/AskAnything";
+import { Features } from "../features/home/Hero";
+import { ProductHero } from "../features/home/ProductHero";
 import { useReveal } from "../features/home/useReveal";
-import { Wordmark } from "./AuthLayout";
-
-// Beige button with green text, for the green nav bar.
-const primaryLook =
-  "items-center rounded-md bg-paper px-5 py-2.5 text-[15px] font-semibold text-pine transition-colors hover:bg-sand active:translate-y-px";
-const primary = `inline-flex ${primaryLook}`;
 
 export function HomePage() {
   const { data: user } = useMe();
@@ -27,62 +22,10 @@ export function HomePage() {
 
   return (
     <div className="overflow-x-clip">
-      {/* Forest green top block: nav + hero share one background */}
-      <div className="relative overflow-hidden bg-pine text-paper">
-        <HeroLines />
-        <header className={`${wrap} relative flex items-center justify-between gap-6 py-5`}>
-          <Link to="/" aria-label="Citely home" className="shrink-0">
-            <Wordmark onDark className="h-8 md:h-9" />
-          </Link>
-          <nav aria-label="Main" className="flex items-center gap-5 text-[16px] md:gap-7">
-            <a
-              href="#how"
-              className="hidden text-paper/80 transition-colors hover:text-paper lg:inline"
-            >
-              How it works
-            </a>
-            <a
-              href="#pipeline"
-              className="hidden text-paper/80 transition-colors hover:text-paper lg:inline"
-            >
-              Your files
-            </a>
-            <a
-              href="#try"
-              className="hidden text-paper/80 transition-colors hover:text-paper lg:inline"
-            >
-              Try it
-            </a>
-            <a
-              href="#questions"
-              className="hidden text-paper/80 transition-colors hover:text-paper lg:inline"
-            >
-              Questions
-            </a>
-            {signedIn ? (
-              <Link to="/workspaces" className={primary}>
-                Open workspaces
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="whitespace-nowrap text-paper/80 transition-colors hover:text-paper"
-                >
-                  Sign in
-                </Link>
-                <Link to="/register" className={`${primaryLook} hidden sm:inline-flex`}>
-                  Create account
-                </Link>
-              </>
-            )}
-          </nav>
-        </header>
-        <Hero signedIn={signedIn} />
-      </div>
+      <ProductHero signedIn={signedIn} />
 
       <main>
-        <SeeThePassage />
+        <AskAnything />
         <Features />
 
         <HowItWorks />
